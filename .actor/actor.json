@@ -1,0 +1,19 @@
+{
+    "actorSpecification": 1,
+    "name": "Investing-Scraper",
+    "title": "Investing-Scraper",
+    "description": "Scrapes articles of investing.com using Scrapy",
+    "buildTag": "latest",
+    "version": "1.0",
+    "readme": "./readme.md",
+    "meta": {
+        "templateId": "python-scrapy"
+    },
+    "input": "./input_schema.json",
+    "dockerfile": "./Dockerfile",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    },
+    "minMemoryMbytes": 512,
+    "maxMemoryMbytes": 2048
+}

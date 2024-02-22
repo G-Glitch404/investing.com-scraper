@@ -1,0 +1,53 @@
+{
+    "actorSpecification": 1,
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "image",
+                    "title",
+                    "category",
+                    "publisher",
+                    "date",
+                    "comments",
+                    "link",
+                    "paragraph"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "Image": {
+                        "label": "Image",
+                        "format": "image"
+                    },
+                    "Title": {
+                        "label": "Text",
+                        "format": "text"
+                    },
+                    "Publisher": {
+                        "label": "Text",
+                        "format": "text"
+                    },
+                    "Category": {
+                        "label": "Text",
+                        "format": "text"
+                    },
+                    "Date": {
+                        "label": "Date",
+                        "format": "date"
+                    },
+                    "Link": {
+                        "label": "Link",
+                        "format": "link"
+                    },
+                    "Paragraph": {
+                        "label": "Text",
+                        "format": "Text"
+                    }
+                }
+            }
+        }
+    }
+}

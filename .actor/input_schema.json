@@ -1,0 +1,57 @@
+{
+    "title": "Investing-Scraper",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+
+        "startUrls": {
+            "title": "Start URLs",
+            "type": "array",
+            "description": "URLs to start with",
+            "prefill": [
+                {"url": "https://www.investing.com/news/latest-news/"},
+                {"url": "https://www.investing.com/news/most-popular-news/"},
+                {"url": "https://www.investing.com/news/headlines/"},
+                {"url": "https://www.investing.com/news/cryptocurrency-news/"},
+                {"url": "https://www.investing.com/news/stock-market-news/"},
+                {"url": "https://www.investing.com/news/commodities-news/"},
+                {"url": "https://www.investing.com/news/forex-news/"},
+                {"url": "https://www.investing.com/news/economy/"},
+                {"url": "https://www.investing.com/news/economic-indicators/"},
+                {"url": "https://www.investing.com/news/politics/"},
+                {"url": "https://www.investing.com/news/world-news/"}
+            ],
+            "editor": "requestListSources"
+        },
+
+        "dateRange": {
+            "title": "Date Range",
+            "type": "string",
+            "description": "Scrape only in specific date range\nDate Can Only be is the formats\n\n* YYYY/M/D e.g. 2023/5/23 to get all the articles that have the same day\n\n* from YYYY/M/D to YYYY/M/D e.g. 2024/1/25 - 2024/1/30 to get a range of 5 days\n    pay attention to the formate (spaces and characters) YYYY/M/D - YYYY/M/D\n\n* 25 days or 5 weeks or 3 months or 2 years\n    only supported formates (day, week, month, year)\n    this feature will always scrape from today's date till the date specified\ne.g. 2024/1/30 is today and you entered 5 days this will scrape from 2024/1/25 to 2024/1/30\n\n* if you don't care about the date and just want 100 aritcles, more or less just enter 'anytime' as a value e.g. anytime\n\n* Allowed Formats: 2023/1/25 - 2023/1/30 or 2020/5/26 or 3 days or anytime\n\n* Leave blank to scrape today's date articles",
+            "default": "anytime",
+            "prefill": "2023/1/5 - 2020/1/5",
+            "editor": "textfield"
+        },
+
+        "maxArticles": {
+        "title": "Maximum Articles Amount",
+        "type": "integer",
+        "description": "Choose how many articles do you want",
+        "default": 100,
+        "prefill": 1000,
+        "minimum": 10,
+        "maximum": 50000
+        },
+
+        "proxyConfiguration": {
+            "sectionCaption": "Proxy and HTTP configuration",
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.",
+            "editor": "proxy",
+            "prefill": { "useApifyProxy": true },
+            "default": { "useApifyProxy": true }
+        }
+    },
+    "required": ["startUrls", "maxArticles"]
+}

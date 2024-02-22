@@ -1,0 +1,21 @@
+{
+  "name": "investing-news-scraper",
+  "version": "1.0.0",
+  "description": "Investing Scraper will enable you to get all the Articles you want from Investing.com.",
+  "main": "src/main.py",
+  "scripts": {
+	"start": "python3 src/__main__.py",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["investing.com", "investing", "news scraper", "scraper"],
+  "author": "Glitch_404",
+  "engines": {
+	  "node": ">=16.0.0",
+	  "npm": ">=8.0.0"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "apify": "^0.19.1",
+    "scrapy": "^2.11.0"
+  }
+}

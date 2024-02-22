@@ -1,0 +1,4 @@
+apify[scrapy] ~= 1.5.3
+nest-asyncio ~= 1.5.8
+scrapy ~= 2.11.0
+itemadapter~=0.8.0
