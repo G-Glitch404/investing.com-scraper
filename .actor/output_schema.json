@@ -1,0 +1,19 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Ultimate-News-Scraper",
+  "description": "Ultimate News Scraper Outputs",
+  "properties": {
+    "results": {
+      "type": "string",
+      "title": "results",
+      "description": "All articles scraped by the actor",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    },
+    "articles_kv": {
+      "type": "string",
+      "title": "articles key-value collection",
+      "description": "key-value store collection with article files",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys?collection=Articles"
+    }
+  }
+}

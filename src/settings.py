@@ -1,28 +1,26 @@
-BOT_NAME = "InvestingCrawler"
-SPIDER_MODULES = ["src.spiders"]
-NEWSPIDER_MODULE = "src.spiders"
+import logging
+import datetime as dt
 
-CLOSESPIDER_ITEMCOUNT = 100
-DEPTH_LIMIT = 1000
-ALLOWED_DATE_RANGE = 'anytime'
-START_URLS = ['https://www.investing.com/news/most-popular-news/']
-
-DUPEFILTER_CLASS = 'scrapy.dupefilters.RFPDupeFilter'
-ROBOTSTXT_OBEY = True
-COOKIES_ENABLED = True
-
-# LOG_FILE = 'scrapy.log'
-# LOG_FILE_APPEND = False
-LOG_LEVEL = 'INFO'
+from multiprocessing import Value
+from .util.utils import path
 
 
-ITEM_PIPELINES = {
-    'src.pipelines.InvestingSpiderPipeline': 100
+settings = {
+    "INVESTING_ENDPOINT": "https://www.investing.com",
+
+    "VERBOSE": False,
+    "LOGGING_LEVEL": logging.DEBUG,
+
+    "DATABASE": path(
+        path('..', '.db'), path('.db', 'articles.db')
+    ),
+
+    "PROXY": None,
+    "MAX_ARTICLES": 100,
+    "STOP_DATE": dt.datetime.now(tz=dt.timezone.utc) - dt.timedelta(days=2),
+    "WORKERS": 2,
+    "ARTICLES_FOUND": Value('i', 0),
+
+    "CATEGORIES_LEN": 27,  # change it when categories are changed downside
+    "INVESTING_CATEGORIES": ("popular", "stockmarket", "commodities", "forex", "economics", "economy", "world", "politics", "stock_markets_analysis", "market_overview", "trading", "ideas", "swot", "sec_filings", "press_releases", "earnings_reports", "companies", "general", "cryptocurrencies", "bitcoin", "ethereum", "xrp", "cardano", "sol", "polkadot", "shiba", "dogecoin"),
 }
-DOWNLOADER_MIDDLEWARES = {
-    "src.middlewares.InvestingNewsFakeHeadersMiddleware": 300,
-}
-
-REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
-TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
-FEED_EXPORT_ENCODING = "utf-8"

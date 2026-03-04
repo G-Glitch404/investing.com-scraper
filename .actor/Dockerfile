@@ -1,33 +1,26 @@
-# First, specify the base Docker image.
-# You can see the Docker images from Apify at https://hub.docker.com/r/apify/.
-# You can also use any other image from Docker Hub.
 FROM apify/actor-python:3.11
 
-# Second, copy just requirements.txt into the Actor image,
-# since it should be the only file that affects the dependency install in the next step,
-# in order to speed up the build
-COPY requirements_apify.txt ./
+WORKDIR /usr/src/app
 
-# Install the packages specified in requirements.txt,
-# Print the installed Python version, pip version
-# and all installed packages with their versions for debugging
-RUN echo "Python version:" \
- && python --version \
- && echo "Pip version:" \
- && pip --version \
- && echo "Installing dependencies:" \
- && pip install -r requirements_apify.txt \
- && echo "All installed Python packages:" \
- && pip freeze
+COPY requirements.txt /usr/src/app/
 
-# Next, copy the remaining files and directories with the source code.
-# Since we do this after installing the dependencies, quick build will be really fast
-# for most source file changes.
-COPY . ./
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends wget ca-certificates gnupg unzip xvfb \
+    fonts-liberation libnss3 libgconf-2-4 libxss1 libappindicator3-1 \
+    libatk-bridge2.0-0 libgtk-3-0 libasound2 libx11-xcb1 libxtst6 libdbus-glib-1-2 \
+ && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+ && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends google-chrome-stable \
+ && rm -rf /var/lib/apt/lists/*
 
-# Use compileall to ensure the runnability of the Actor Python code.
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src .logs .data_dirs /usr/src/app/
+
 RUN python3 -m compileall -q .
 
-# Specify how to launch the source code of your Actor.
-# By default, the "python3 -m src" command is run
+ENV DISPLAY=:99
+ENV CHROME_BIN=/usr/bin/google-chrome-stable
+
 CMD ["python3", "-m", "src"]

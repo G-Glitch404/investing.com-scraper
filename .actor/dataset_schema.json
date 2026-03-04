@@ -5,46 +5,75 @@
             "title": "Overview",
             "transformation": {
                 "fields": [
-                    "image",
-                    "title",
-                    "category",
-                    "publisher",
-                    "date",
-                    "comments",
-                    "link",
-                    "paragraph"
+                    "Icon",
+                    "Title",
+                    "Summary",
+                    "Publisher",
+                    "Authors",
+                    "Category",
+                    "Article Type",
+                    "Published",
+                    "Modified",
+                    "Tags",
+                    "Body",
+                    "URL",
+                    "Images"
                 ]
             },
             "display": {
                 "component": "table",
                 "properties": {
-                    "Image": {
-                        "label": "Image",
+                    "Icon": {
+                        "label": "Icon",
                         "format": "image"
                     },
                     "Title": {
-                        "label": "Text",
+                        "label": "Title",
+                        "format": "text"
+                    },
+                    "Summary": {
+                        "label": "Summary",
                         "format": "text"
                     },
                     "Publisher": {
-                        "label": "Text",
+                        "label": "Publisher",
                         "format": "text"
+                    },
+                    "Authors": {
+                        "label": "Authors",
+                        "format": "array"
                     },
                     "Category": {
-                        "label": "Text",
+                        "label": "Category",
                         "format": "text"
                     },
-                    "Date": {
-                        "label": "Date",
+                    "Article Type": {
+                        "label": "Article Type",
+                        "format": "text"
+                    },
+                    "Published": {
+                        "label": "Published",
                         "format": "date"
                     },
-                    "Link": {
-                        "label": "Link",
+                    "Modified": {
+                        "label": "Modified",
+                        "format": "date"
+                    },
+                    "Tags": {
+                        "label": "Tags",
+                        "format": "array"
+                    },
+                    "Body": {
+                        "label": "Body",
+                        "format": "text"
+                    },
+                    "URL": {
+                        "label": "URL",
                         "format": "link"
                     },
-                    "Paragraph": {
-                        "label": "Text",
-                        "format": "Text"
+                    "Images": {
+                        "label": "Images",
+                        "format": "array"
                     }
                 }
             }

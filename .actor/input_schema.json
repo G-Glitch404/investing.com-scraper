@@ -1,57 +1,151 @@
 {
-    "title": "Investing-Scraper",
-    "type": "object",
-    "schemaVersion": 1,
-    "properties": {
-
-        "startUrls": {
-            "title": "Start URLs",
-            "type": "array",
-            "description": "URLs to start with",
-            "prefill": [
-                {"url": "https://www.investing.com/news/latest-news/"},
-                {"url": "https://www.investing.com/news/most-popular-news/"},
-                {"url": "https://www.investing.com/news/headlines/"},
-                {"url": "https://www.investing.com/news/cryptocurrency-news/"},
-                {"url": "https://www.investing.com/news/stock-market-news/"},
-                {"url": "https://www.investing.com/news/commodities-news/"},
-                {"url": "https://www.investing.com/news/forex-news/"},
-                {"url": "https://www.investing.com/news/economy/"},
-                {"url": "https://www.investing.com/news/economic-indicators/"},
-                {"url": "https://www.investing.com/news/politics/"},
-                {"url": "https://www.investing.com/news/world-news/"}
-            ],
-            "editor": "requestListSources"
-        },
-
-        "dateRange": {
-            "title": "Date Range",
-            "type": "string",
-            "description": "Scrape only in specific date range\nDate Can Only be is the formats\n\n* YYYY/M/D e.g. 2023/5/23 to get all the articles that have the same day\n\n* from YYYY/M/D to YYYY/M/D e.g. 2024/1/25 - 2024/1/30 to get a range of 5 days\n    pay attention to the formate (spaces and characters) YYYY/M/D - YYYY/M/D\n\n* 25 days or 5 weeks or 3 months or 2 years\n    only supported formates (day, week, month, year)\n    this feature will always scrape from today's date till the date specified\ne.g. 2024/1/30 is today and you entered 5 days this will scrape from 2024/1/25 to 2024/1/30\n\n* if you don't care about the date and just want 100 aritcles, more or less just enter 'anytime' as a value e.g. anytime\n\n* Allowed Formats: 2023/1/25 - 2023/1/30 or 2020/5/26 or 3 days or anytime\n\n* Leave blank to scrape today's date articles",
-            "default": "anytime",
-            "prefill": "2023/1/5 - 2020/1/5",
-            "editor": "textfield"
-        },
-
-        "maxArticles": {
-        "title": "Maximum Articles Amount",
-        "type": "integer",
-        "description": "Choose how many articles do you want",
-        "default": 100,
-        "prefill": 1000,
-        "minimum": 10,
-        "maximum": 50000
-        },
-
-        "proxyConfiguration": {
-            "sectionCaption": "Proxy and HTTP configuration",
-            "title": "Proxy configuration",
-            "type": "object",
-            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.",
-            "editor": "proxy",
-            "prefill": { "useApifyProxy": true },
-            "default": { "useApifyProxy": true }
-        }
+  "title": "Investing-News-Scraper",
+  "description": "Investing News Scraper Inputs\n\nprovide input values below; examples are included inside each field description",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "links": {
+      "title": "Start links",
+      "description": "add or remove start urls for the request list\n\nformat examples\n- single url: https://www.investing.com/news/latest-news/3\n- multiple sources: add each source as a separate item in the list\n\nnote: leave empty to start with no urls and populate the request list dynamically",
+      "type": "array",
+      "editor": "requestListSources",
+      "default": []
     },
-    "required": ["startUrls", "maxArticles"]
+
+    "keywords": {
+      "title": "Search keywords",
+      "description": "add or remove keywords to search for\n\nformat examples\n- single keyword: bitcoin\n- phrase: \"climate change\"\n- multiple entries: add each keyword/phrase as its own list item\n\nnote: leaving this list empty means no keyword filtering will be applied, keywords filtring is very slow and CaseSensitive.",
+      "type": "array",
+      "editor": "textfield",
+      "items": {"type": "string"},
+      "default": []
+    },
+
+    "categories": {
+      "title": "Select categories to scrape news from",
+      "description": "Categories to scrape from if you want to scrape from all categories choose 'all'",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 13,
+      "nullable": false,
+      "editor": "select",
+      "default": ["all"],
+      "items": {
+        "type": "string",
+        "enum": [
+          "all",
+          "general",
+          "latest",
+          "popular",
+          "world",
+          "politics",
+          "companies",
+          "stockmarket", "stock_markets_analysis", "market_overview",
+          "economy",  "commodities", "economics",
+          "forex",
+          "trading",
+          "earnings_reports",  "ideas", "swot", "sec_filings", "press_releases",
+          "cryptocurrencies", "bitcoin", "ethereum", "xrp", "cardano", "sol", "polkadot", "shiba", "dogecoin"
+        ],
+        "enumTitles": [
+          "All News & Articles",
+          "General Daily News",
+          "Latest News & Articles",
+          "Popular Finance News",
+          "World News",
+          "Politics News",
+          "Companies News",
+          "Stocks Market",
+          "Economy News",
+          "Forex News",
+          "Trading News",
+          "Reports Articles",
+          "Cryptocurrencies News"
+        ]
+      }
+    },
+
+    "stopDate": {
+      "title": "Stop date",
+      "description": "select the earliest article date allowed\n\nbehavior\n- the scraper stops when it encounters articles older than this date\n- only articles published on or after this date will be returned\n\nexamples\n- choose 2025-03-01 → articles from 2025-03-01 and newer are collected\n- leave empty → no stop date limit is applied",
+      "type": "string",
+      "format": "date",
+      "editor": "datepicker",
+      "dateType": "absolute",
+      "nullable": true,
+      "default": null
+    },
+
+    "filterFields": {
+      "title": "Filter Articles if missing a field",
+      "description": "drop articles that are missing any of the selected fields\n\nusage examples\n- leave empty: no field-based filtering, return articles even if fields are missing\n- single field: [\"authors\"] will drop articles with empty or missing authors\n- multiple fields: [\"title\",\"body\"] will drop articles missing either title or body\n\nbehavior\n- selectable values mirror article fields; choose nothing, one, or many\n- if you need to require at least one of several fields instead of all, handle in post-processing",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 13,
+      "nullable": true,
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "icon",
+          "title",
+          "summary",
+          "publisher",
+          "authors",
+          "category",
+          "article_type",
+          "published",
+          "modified",
+          "tags",
+          "body",
+          "url",
+          "images"
+        ],
+        "enumTitles": [
+          "Icon",
+          "Title",
+          "Summary",
+          "Publisher",
+          "Authors",
+          "Category",
+          "Article Type",
+          "Published",
+          "Modified",
+          "Tags",
+          "Body",
+          "URL",
+          "Images"
+        ]
+      },
+      "default": []
+    },
+
+    "maxArticles": {
+      "title": "Maximum Articles Amount",
+      "type": "integer",
+      "description": "set the maximum number of articles the actor will attempt to collect\n\nbehavior examples\n- default 10: quick runs and testing\n- prefill 1000: helpful example shown in the UI for larger harvests\n- if you set 1000 you may still get fewer results depending on site availability\n\nconstraints\n- minimum: 10\n- maximum: 10000",
+      "default": 10,
+      "editor": "number",
+      "prefill": 1000,
+      "maximum": 10000,
+      "minimum": 10
+    },
+
+    "proxyConfiguration": {
+      "title": "Proxy configurations",
+      "type": "object",
+      "description": "specify which proxies the scraper should use (optional)\n\nexamples\n- use apify proxy: set useApifyProxy to true\n- custom proxy: provide a proxy url or configure your proxy pool in the platform\n\nrecommended usage\n- enable proxies if you see empty results or frequent block responses\n- keep useApifyProxy=false for local testing and enable in production runs",
+      "sectionCaption": "Proxy and HTTP configurations",
+      "sectionDescription": "if you face problems with like no results returned then try to set this to use some proxies maybe this can solve the issue",
+      "prefill": {"useApifyProxy": false},
+      "default": {"useApifyProxy": false},
+      "editor": "proxy",
+      "nullable": true
+    }
+  },
+
+  "required": [
+    "categories",
+    "maxArticles"
+  ]
 }

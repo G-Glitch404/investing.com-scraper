@@ -1,0 +1,11 @@
+{
+    "actorKeyValueStoreSchemaVersion": 1,
+    "title": "Key-Value Store Schema",
+    "collections": {
+        "Articles": {
+            "title": "Articles",
+            "keyPrefix": "articles-",
+            "description": "All articles scraped by the actor."
+        }
+    }
+}

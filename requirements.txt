@@ -1,0 +1,7 @@
+browserforge~=1.2.4
+parsel~=1.11.0
+psutil~=7.2.2
+seleniumbase~=4.47.1
+selenium~=4.41.0
+
+apify

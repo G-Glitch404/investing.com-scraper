@@ -1,0 +1,15 @@
+investing_com: dict[str, str] = {
+    "articles_section": 'ul[data-test="news-list"] > li > article',
+    "analysis_section": 'ul[data-test="analysis-list"] > li > article',
+    "title": 'div > a ::text',
+    "summary": 'div > p ::text',
+    "content": '#article > div > div > div > *:not(div) ::text',
+    "publisher_agency": 'span[data-test="news-provider-name"] ::text',
+    "article_writer": 'a[data-test="article-provider-link"] ::text',
+    "published_modified_dates": 'div[class*="flex"] > span',
+    "authors": 'span[class*="flex"] > a[class*="max-w-"][href][rel="nofollow"] ::text',
+    "authors_2": 'div[class="article_container"] > div > p ::text',
+    "url": 'article > div > a ::attr(href)',
+    "icon": 'div[class*="mb-5 "] > img ::attr(src)',
+    "images": 'img[title] ::attr(src)',
+}

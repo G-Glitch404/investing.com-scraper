@@ -2,18 +2,22 @@
     "actorSpecification": 1,
     "name": "Investing-Scraper",
     "title": "Investing-Scraper",
-    "description": "Scrapes articles of investing.com using Scrapy",
+    "description": "Scrapes articles from investing.com using seleniumbase & parsel.",
     "buildTag": "latest",
-    "version": "1.0",
+    "version": "2.0",
+    "usesStandbyMode": false,
+    "minMemoryMbytes": 1024,
+    "maxMemoryMbytes": 1024,
     "readme": "./readme.md",
-    "meta": {
-        "templateId": "python-scrapy"
-    },
-    "input": "./input_schema.json",
+    "changelog": "./changelog.md",
     "dockerfile": "./Dockerfile",
+    "input": "./input_schema.json",
+    "output": "./output_schema.json",
     "storages": {
+        "keyValueStore": "./key_value_store_schema.json",
         "dataset": "./dataset_schema.json"
     },
-    "minMemoryMbytes": 512,
-    "maxMemoryMbytes": 2048
+    "meta": {
+        "templateId": "python_empty"
+    }
 }
