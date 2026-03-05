@@ -5,7 +5,7 @@
   "schemaVersion": 1,
   "properties": {
     "links": {
-      "title": "Start links",
+      "title": "Start links - Scrape specific pages or articles",
       "description": "add or remove start urls for the request list\n\nformat examples\n- single url: https://www.investing.com/news/latest-news/3\n- multiple sources: add each source as a separate item in the list\n\nnote: leave empty to start with no urls and populate the request list dynamically",
       "type": "array",
       "editor": "requestListSources",
@@ -13,12 +13,12 @@
     },
 
     "keywords": {
-      "title": "Search keywords",
+      "title": "Filter by keywords",
       "description": "add or remove keywords to search for\n\nformat examples\n- single keyword: bitcoin\n- phrase: \"climate change\"\n- multiple entries: add each keyword/phrase as its own list item\n\nnote: leaving this list empty means no keyword filtering will be applied, keywords filtring is very slow and CaseSensitive.",
-      "type": "array",
-      "editor": "textfield",
-      "items": {"type": "string"},
-      "default": []
+      "type": "string",
+      "editor": "select",
+      "enumSuggestedValues": [""],
+      "default": ""
     },
 
     "categories": {
@@ -69,7 +69,6 @@
       "title": "Stop date",
       "description": "select the earliest article date allowed\n\nbehavior\n- the scraper stops when it encounters articles older than this date\n- only articles published on or after this date will be returned\n\nexamples\n- choose 2025-03-01 → articles from 2025-03-01 and newer are collected\n- leave empty → no stop date limit is applied",
       "type": "string",
-      "format": "date",
       "editor": "datepicker",
       "dateType": "absolute",
       "nullable": true,
