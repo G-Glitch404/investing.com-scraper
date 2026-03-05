@@ -3,7 +3,6 @@ from typing import Union
 import datetime as dt
 
 from src.core.logger import Logger
-from src.settings import settings
 from src.util.utils import to_datetime_aware, format_date
 from src.util.decorators import catch_exceptions
 
@@ -55,7 +54,6 @@ def convert_time_date(date: str) -> Union[dt.datetime, bool]:
 
 
 if __name__ == '__main__':
-    settings['ALLOWED_DATE'] = dt.date(2026, 1, 7)
     for pattern in ['12 hours ago', 'Jan 31, 2026', '24 august 2024 20:38, utc', '1h', '23 H', '08/30/2024,04:14 pm', '25h', '05 September 2024 19:22, UTC']:
         date_ = convert_time_date(pattern)
         print(date_)

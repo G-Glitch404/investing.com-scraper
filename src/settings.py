@@ -2,7 +2,7 @@ import logging
 import datetime as dt
 
 from multiprocessing import Value
-from .util.utils import path
+from src.util.utils import path
 
 
 settings = {
@@ -14,6 +14,8 @@ settings = {
     "DATABASE": path(
         path('..', '.db'), path('.db', 'articles.db')
     ),
+
+    "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc),
 
     "PROXY": None,
     "MAX_ARTICLES": 100,
