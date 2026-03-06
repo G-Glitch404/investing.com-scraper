@@ -1,4 +1,4 @@
-FROM apify/actor-python:3.11
+FROM apify/actor-python:3.13
 
 WORKDIR /usr/src/app
 
@@ -16,7 +16,8 @@ RUN apt-get update \
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src .logs .data_dirs /usr/src/app/
+COPY src /usr/src/app/
+run mkdir .logs .db .data_dirs /usr/src/app/
 
 RUN python3 -m compileall -q .
 

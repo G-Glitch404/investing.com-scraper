@@ -1,15 +1,14 @@
+import datetime as dt
 from typing import Any, Optional
+
 from apify import Actor
 
 from src.settings import settings
 from src.core.logger import Logger
+from src.api.crawling_manager import crawling_manager
 from src.util.utils import format_date
 
 control_logger = Logger("Control")
-
-
-def crawling_manager():
-    pass
 
 
 def get_client_inputs(actor_input: dict) -> dict[str, Any]:
@@ -78,6 +77,17 @@ async def main() -> None:
                 f'Scraping ~{actor_input["max_articles"]} {"articles" if actor_input["max_articles"] > 1 else "article"} '
                 f'from {len(actor_input["categories"])} {"categories" if len(actor_input["categories"]) > 1 else "category"}'
             )
+
+        await crawling_manager(actor_input)
+
+        control_logger.info(
+            f'Actor Finished Scraping - found {settings["ARTICLES_FOUND"].value} articles (duplications included) and took '
+            f'{round((dt.datetime.now(tz=dt.timezone.utc) - settings["TODAY_DATE"]).total_seconds() / 60, 2)}'
+            f' minutes now exiting'
+        )
+
+        await Actor.set_status_message('Actor is done scraping now exiting...')
+        await Actor.exit()
 
 
 if __name__ == "__main__":

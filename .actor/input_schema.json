@@ -40,12 +40,12 @@
           "world",
           "politics",
           "companies",
-          "stockmarket", "stock_markets_analysis", "market_overview",
-          "economy",  "commodities", "economics",
+          "stockmarket",
+          "economy",
           "forex",
           "trading",
-          "earnings_reports",  "ideas", "swot", "sec_filings", "press_releases",
-          "cryptocurrencies", "bitcoin", "ethereum", "xrp", "cardano", "sol", "polkadot", "shiba", "dogecoin"
+          "reports",
+          "cryptocurrencies"
         ],
         "enumTitles": [
           "All News & Articles",
