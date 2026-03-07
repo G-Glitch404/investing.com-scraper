@@ -1,11 +1,39 @@
+import math
 import asyncio
+import datetime as dt
+
 from typing import Any
 
 from src.settings import settings, crawler_categories
+from src.api.investing_api import InvestingAPI
 from src.core.database import Database
 from src.core.logger import Logger
+from src.util.utils import max_articles_per_category
+from src.__init__ import rebuild_database, clean_processes
 
 logger = Logger("CrawlingManager")
+
+
+async def scrape_links(crawler: InvestingAPI, links: list[str], stop_date: dt.datetime, max_articles) -> None:
+    articles_counter: int = 0
+
+    for link in links:
+        for article in crawler.crawl_page(link=link, stop_date=stop_date):
+            if article.insert_to_db(): articles_counter += 1
+        if articles_counter >= max_articles: break
+
+
+async def scrape_categories(crawler: InvestingAPI, categories: str, stop_date: dt.datetime, max_articles: int) -> None:
+    articles_counter: int = 0
+
+    for category in categories:
+        for article in crawler.crawl(
+            topic_category=category,
+            max_articles=max_articles,
+            stop_date=stop_date,
+        ):
+            if article.insert_to_db(): articles_counter += 1
+        if articles_counter >= max_articles: break
 
 
 def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tuple[bool, str]:
@@ -27,8 +55,7 @@ def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tupl
     # categories check
     if "all" not in actor_input["categories"]:
         art_cat: str = article.get("category")
-        all_cats: list[str] = crawler_categories["all_categories"] + crawler_categories["special_categories"]
-        if (not art_cat) or (art_cat not in all_cats):
+        if (not art_cat) or (art_cat not in crawler_categories["all_categories"]):
             return True, "article category unavailable"
         if art_cat not in actor_input["categories"]:
             return True, "category mismatch"
@@ -59,7 +86,7 @@ async def push_data(actor, actor_input: dict[str, Any]) -> None:
     while counter < actor_input["max_articles"]:
         await asyncio.sleep(5)
 
-        for db_article in Database().fetch_all():
+        for db_article in Database().fetch_all('articles'):
             if counter >= actor_input["max_articles"]: break
             if not db_article: continue
 
@@ -106,5 +133,36 @@ async def push_data(actor, actor_input: dict[str, Any]) -> None:
         counter_prev = settings["ARTICLES_FOUND"].value
 
 
-async def crawling_manager(actor, actor_input: dict) -> None:
-    pass
+async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
+    rebuild_database()
+    clean_processes()
+
+    amount_per_category: int = max_articles_per_category(actor_input["max_articles"], (len(actor_input["links"]) or len(actor_input["categories"])))
+    cats_or_urls_per_worker: int = math.ceil((len(actor_input["links"]) or len(actor_input["categories"]) / settings["WORKERS"]))
+
+    tasks = []
+    for worker_id in range(settings["WORKERS"]):
+        logger.debug(f'started worker ID #{worker_id}')
+        crawler: InvestingAPI = InvestingAPI(worker_id, proxy=(actor_input["proxy"] or None))
+
+        scrape_task = None
+        if isinstance(actor_input["links"], list) and len(actor_input["links"]) >= 1:
+            scrape_task = scrape_links(
+                crawler=crawler,
+                links=actor_input["links"][: cats_or_urls_per_worker * worker_id],
+                stop_date=actor_input["stop_date"],
+                max_articles=amount_per_category,
+            )
+
+        elif isinstance(actor_input["categories"], list) and len(actor_input["categories"]) >= 1:
+            scrape_task = scrape_categories(
+                crawler=crawler,
+                categories=actor_input["categories"][:cats_or_urls_per_worker * worker_id],
+                stop_date=actor_input["stop_date"],
+                max_articles=amount_per_category,
+            )
+
+        tasks.append(scrape_task)
+
+    tasks.append(push_data(actor, actor_input))
+    await asyncio.gather(*tasks)

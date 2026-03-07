@@ -1,4 +1,5 @@
 import json
+import time
 import datetime as dt
 
 from parsel import Selector
@@ -27,9 +28,10 @@ driver_exceptions: tuple = (
 class InvestingAPI:
     logger = Logger("InvestingAPI")
 
-    def __init__(self, proxy: dict = settings["PROXY"]) -> None:
+    def __init__(self, worker_id: Optional[int] = None, proxy: dict = settings["PROXY"]) -> None:
         self._driver = None
         self.proxy: dict = proxy
+        self.worker_id = worker_id
 
         self._crawling_category: str = ''
         self._format_date: Callable = lambda _date: convert_time_date(
@@ -50,14 +52,14 @@ class InvestingAPI:
         if self._driver is None or not self._driver.is_connected():
             self._driver = Driver(
                 uc=True,
-                headless2=True,
+                headless2=False,
                 proxy=self.proxy,
                 browser='chrome',
                 dark_mode=True,
                 do_not_track=True,
-                user_data_dir=path('api', path('.data_dirs', 'InvestingCrawlerProfile')),
+                user_data_dir=path(path('..', '.data_dirs'), f'InvestingCrawlerProfile{self.worker_id}'),
             )
-            self.logger.info("crawler cleaned browser process and restarted seleniumbase uc driver")
+            self.logger.debug("crawler started seleniumbase uc driver")
 
         return self._driver
 
@@ -108,6 +110,35 @@ class InvestingAPI:
             yield settings['INVESTING_ENDPOINT'] + f'/{category}/{starting_page}'
             starting_page += 1
 
+    def crawl_page(self, link: str, stop_date: dt.datetime) -> Generator[Article, None, None]:
+        self.driver.get(link)
+        time.sleep(0.25)
+
+        try: response: str = self.driver.page_source
+        except AttributeError as e:
+            self.logger.error(f"couldn't scrape articles from Investing-API - error: '{e}'")
+            return
+
+        selector = Selector(text=response, type='html')
+        articles: list = selector.css(se['articles_section'])
+        if len(articles) <= 0: articles: list = selector.css(se['analysis_section'])
+
+        for article_html in articles:
+            article_data: dict[str, Any] = {
+                "title": clean_text(article_html.css(se['title']).extract()),
+                "summary": clean_text(article_html.css(se['summary']).extract()),
+                "publisher": clean_text(
+                    [article_html.css(se['publisher_agency']).get() or article_html.css(se['article_writer']).get()]
+                ),
+                "url": article_html.css(se['url']).get()
+            }
+
+            if 'Investing.com Studios' in article_data['publisher'].strip():
+                continue
+
+            if article_obj := self.extract_article(article_data, stop_date):
+                yield article_obj
+
     def crawl(
             self,
             topic_category: str = 'latest',
@@ -130,46 +161,16 @@ class InvestingAPI:
         articles_counter: int = 0
         for url in self.pagination(topic_category, starting_page):
             self.logger.debug(f'crawling page number {url.split("/")[-1]}')
-
-            self.driver.get(url=url)
-            time.sleep(0.25)
-            try: response: str = self.driver.page_source
-            except AttributeError as e:
-                self.logger.error(f"couldn't scrape articles from Investing-API - error: '{e}'")
-                continue
-
-            selector = Selector(text=response, type='html')
-            articles: list = selector.css(se['articles_section'])
-            if len(articles) <= 0: articles: list = selector.css(se['analysis_section'])
-
-            for article_html in articles[:max_articles - articles_counter]:
-                article_data: dict[str, Any] = {
-                    "title": clean_text(article_html.css(se['title']).extract()),
-                    "summary": clean_text(article_html.css(se['summary']).extract()),
-                    "publisher": clean_text(
-                        [article_html.css(se['publisher_agency']).get() or article_html.css(se['article_writer']).get()]
-                    ),
-                    "url": article_html.css(se['url']).get()
-                }
-
-                if 'Investing.com Studios' in article_data['publisher'].strip():
-                    continue
-
-                if article_obj := self.extract_article(article_data, stop_date):
-                    yield article_obj
-                    articles_counter += 1
-                else:
+            for article in self.crawl_page(link=url, stop_date=stop_date):
+                yield article
+                articles_counter += 1
+                if articles_counter >= max_articles:
                     self.logger.info(f'scrapped {articles_counter}/{max_articles} articles from "{topic_category}"')
-                    self.logger.debug(f'stop_date triggered article_data: {article_data}  stop_date: {stop_date}')
                     return
-
-            self.logger.info(f'scrapped {articles_counter}/{max_articles} articles from category "{topic_category}"')
-            if articles_counter <= 0 or articles_counter >= max_articles:
-                break
 
     def extract_article(self, article: dict, stop_date: Optional[dt.datetime]) -> Union[Article, bool]:
         """ extract article data after collecting article url from main category page """
-        self.driver.get(url=article['url'])
+        self.driver.get(article['url'])
         time.sleep(0.25)
         try: article_page: str = self.driver.page_source
         except (AttributeError, TypeError) as e:
@@ -247,8 +248,6 @@ class InvestingAPI:
 
 
 if __name__ == '__main__':
-    import time
-
     _session = InvestingAPI()
     _start: float = time.perf_counter()
 
@@ -259,6 +258,7 @@ if __name__ == '__main__':
             stop_date=dt.datetime.now(tz=dt.timezone.utc) - dt.timedelta(days=5),
             max_articles=334
     ):
+        __article.insert_to_db()
         _urls.add(__article['url'])
         for k, v in __article:
             print(f'{k}: {v}')

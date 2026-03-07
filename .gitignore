@@ -108,3 +108,6 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+.data_dirs
+downloaded_files
+storage

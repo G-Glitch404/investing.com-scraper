@@ -4,7 +4,7 @@ import datetime as dt
 from typing import Any
 from multiprocessing import Value
 
-from src.util.utils import path
+from src.util.utils import path, DEFAULT_DATE_FORMAT
 
 
 settings: dict[str, Any] = {
@@ -14,17 +14,16 @@ settings: dict[str, Any] = {
     "LOGGING_LEVEL": logging.DEBUG,
 
     "DATABASE": path(
-        path('..', '.db'), path('.db', 'articles.db')
+        path('..', '.db'), 'news_articles.db'
     ),
 
-    "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc),
-
     "PROXY": None,
-    "MAX_ARTICLES": 100,
-    "STOP_DATE": dt.datetime.now(tz=dt.timezone.utc) - dt.timedelta(days=2),
+
     "WORKERS": 2,
+    "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc).strftime(DEFAULT_DATE_FORMAT),
     "ARTICLES_FOUND": Value('i', 0),
 }
+
 
 crawler_categories: dict[str, Any] = {
     "categories_len": 27,  # change it when categories are changed downside
