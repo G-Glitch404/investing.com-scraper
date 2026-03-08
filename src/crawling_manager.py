@@ -140,29 +140,27 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
     amount_per_category: int = max_articles_per_category(actor_input["max_articles"], (len(actor_input["links"]) or len(actor_input["categories"])))
     cats_or_urls_per_worker: int = math.ceil((len(actor_input["links"]) or len(actor_input["categories"]) / settings["WORKERS"]))
 
-    tasks = []
-    for worker_id in range(settings["WORKERS"]):
-        logger.debug(f'started worker ID #{worker_id}')
-        crawler: InvestingAPI = InvestingAPI(worker_id, proxy=(actor_input["proxy"] or None))
+    logger.debug(f'started crawler worker with ID #1')
+    crawler: InvestingAPI = InvestingAPI(worker_id=1, proxy=(actor_input["proxy"] or None))
 
-        scrape_task = None
-        if isinstance(actor_input["links"], list) and len(actor_input["links"]) >= 1:
-            scrape_task = scrape_links(
-                crawler=crawler,
-                links=actor_input["links"][: cats_or_urls_per_worker * worker_id],
-                stop_date=actor_input["stop_date"],
-                max_articles=amount_per_category,
-            )
+    scrape_task = None
+    if isinstance(actor_input["links"], list) and len(actor_input["links"]) >= 1:
+        scrape_task = scrape_links(
+            crawler=crawler,
+            links=actor_input["links"][: cats_or_urls_per_worker],
+            stop_date=actor_input["stop_date"],
+            max_articles=amount_per_category,
+        )
 
-        elif isinstance(actor_input["categories"], list) and len(actor_input["categories"]) >= 1:
-            scrape_task = scrape_categories(
-                crawler=crawler,
-                categories=actor_input["categories"][:cats_or_urls_per_worker * worker_id],
-                stop_date=actor_input["stop_date"],
-                max_articles=amount_per_category,
-            )
+    elif isinstance(actor_input["categories"], list) and len(actor_input["categories"]) >= 1:
+        scrape_task = scrape_categories(
+            crawler=crawler,
+            categories=actor_input["categories"][:cats_or_urls_per_worker],
+            stop_date=actor_input["stop_date"],
+            max_articles=amount_per_category,
+        )
 
-        tasks.append(scrape_task)
-
-    tasks.append(push_data(actor, actor_input))
-    await asyncio.gather(*tasks)
+    await asyncio.gather(
+        push_data(actor, actor_input),
+        scrape_task,
+    )

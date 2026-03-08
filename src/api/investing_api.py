@@ -15,13 +15,8 @@ from src.util.selector import investing_com as se
 from src.util.date_handler import convert_time_date
 
 driver_exceptions: tuple = (
-    json.JSONDecodeError,
-    InvalidSessionIdException,
-    NoSuchWindowException,
-    KeyError,
-    IndexError,
-    TypeError,
-    AttributeError
+    json.JSONDecodeError, InvalidSessionIdException, NoSuchWindowException,
+    KeyError, IndexError, TypeError, AttributeError
 )
 
 
@@ -50,7 +45,7 @@ class InvestingAPI:
     def driver(self):
         """ Returns the seleniumbase uc driver """
         if self._driver is None or not self._driver.is_connected():
-            self._driver = Driver(
+            self._driver = Driver(  # TODO: you need to debug why only 1 browser instance opens and the other stops (try changing the protocols and servers hosts in the parameters)
                 uc=True,
                 headless2=False,
                 proxy=self.proxy,
