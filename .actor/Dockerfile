@@ -17,7 +17,7 @@ RUN apt-get update \
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src /usr/src/app/
-run mkdir .logs .db .data_dirs /usr/src/app/
+run mkdir logs .db .data_dirs /usr/src/app/
 
 RUN python3 -m compileall -q .
 

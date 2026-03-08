@@ -70,8 +70,7 @@ async def main() -> None:
             date_range: {actor_input["stop_date"]}
             max_articles: {actor_input["max_articles"]}
             proxies: {actor_input["proxy"]}
-            -----------------
-            \n
+            -----------------\n
             Crawling Initiated...
             """
         )

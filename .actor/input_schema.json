@@ -68,7 +68,7 @@
 
     "stopDate": {
       "title": "Stop date",
-      "description": "select the earliest article date allowed (get articles from today's date til the selected date) \n\nbehavior\n- the scraper stops when it encounters articles older than this date\n- only articles published on or after this date will be returned\n\nexamples\n- choose 2025-03-01 → articles from 2025-03-01 and newer are collected\n- leave empty → no stop date limit is applied",
+      "description": "select the earliest article date allowed (get articles from today's date til the selected date) \n\nbehavior\n- always defaults to today's date if kept null\n- the scraper stops when it encounters articles older than this date\n- only articles published on or after this date will be returned\n\nexamples\n- choose 2025-03-01 → articles from 2025-03-01 and newer are collected\n- leave empty → no stop date limit is applied",
       "type": "string",
       "editor": "datepicker",
       "dateType": "absolute",
