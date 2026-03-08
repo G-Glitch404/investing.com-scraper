@@ -45,7 +45,7 @@ class InvestingAPI:
     def driver(self):
         """ Returns the seleniumbase uc driver """
         if self._driver is None or not self._driver.is_connected():
-            self._driver = Driver(  # TODO: you need to debug why only 1 browser instance opens and the other stops (try changing the protocols and servers hosts in the parameters)
+            self._driver = Driver(
                 uc=True,
                 headless2=False,
                 proxy=self.proxy,
