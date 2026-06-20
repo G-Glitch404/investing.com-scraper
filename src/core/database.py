@@ -60,7 +60,7 @@ class Database(threading.Thread):
         return True
 
     @catch_exceptions
-    def delete_record(self, table_name: str, record_id: int) -> None:
+    def delete_record(self, record_id: int,  table_name: str = 'articles') -> None:
         """ delete a record from a table """
         with self.mutex:
             self._connect()

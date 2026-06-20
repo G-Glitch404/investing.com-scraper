@@ -19,7 +19,7 @@ def get_client_inputs(actor_input: dict) -> dict[str, Any]:
     categories: list[str] = actor_input.get('categories', ["latest"])
     filter_fields: Optional[list[dict]] = actor_input.get('filterFields', [])
     max_articles: int = actor_input.get('maxArticles', 100)
-    stop_date: Optional[str] = actor_input.get('stopDate', settings["TODAY_DATE"])
+    stop_date: Optional[str] = actor_input.get('stopDate')
 
     if proxy == {"useApifyProxy": False}:
         proxy = None
@@ -36,7 +36,7 @@ def get_client_inputs(actor_input: dict) -> dict[str, Any]:
         "categories": categories,
         "filter_fields": filter_fields,
         "max_articles": max_articles,
-        "stop_date": format_date(stop_date),
+        "stop_date": format_date(stop_date) if stop_date else None,
         "proxy_cfg": proxy
     }
 

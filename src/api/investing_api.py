@@ -204,8 +204,8 @@ class InvestingAPI:
 
         # date is already UTC
         if (
-            not isinstance(stop_date, dt.datetime) or
-            not isinstance(article["published"], dt.datetime) or
+            isinstance(stop_date, dt.datetime) and
+            isinstance(article["published"], dt.datetime) and
             article["published"] < to_datetime_aware(stop_date)
         ):
             return False
@@ -219,7 +219,7 @@ class InvestingAPI:
             article['article_type'] = 'analysis'
 
         article['category'] = self._crawling_category.lower().replace('_', ' ').split('/')[1]
-        article['tags'] = ["Investing Article", article['category'].split('/')[1], article['article_type']]
+        article['tags'] = ["Investing Article", article['category'].capitalize(), article['article_type']]
         article['summary'] = summary.replace('-- ', '  ').replace(') -', '  ').split('  ', 1)[-1] or None
 
         article['images'] = [
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     _urls: set[str] = set()  # for detecting duplicates
     for __article in _session.crawl(
             topic_category='latest',
-            stop_date=dt.datetime.now(tz=dt.timezone.utc) - dt.timedelta(days=5),
+            stop_date=None,
             max_articles=334
     ):
         __article.insert_to_db()
