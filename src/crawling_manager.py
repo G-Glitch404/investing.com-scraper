@@ -16,7 +16,7 @@ logger = Logger("CrawlingManager")
 
 async def scrape_links(crawler, links: list[str], stop_date: Optional[dt.datetime], max_articles: int) -> None:
     def _run() -> None:
-        articles_counter = 0
+        articles_counter: int = 0
         for link in links:
             for article in crawler.crawl_page(link=link, stop_date=stop_date):
                 if article.insert_to_db():
@@ -30,7 +30,7 @@ async def scrape_links(crawler, links: list[str], stop_date: Optional[dt.datetim
 
 async def scrape_categories(crawler, categories: list[str], stop_date: Optional[dt.datetime], max_articles: int) -> None:
     def _run() -> None:
-        articles_counter = 0
+        articles_counter: int = 0
         for category in categories:
             for article in crawler.crawl(
                 topic_category=category,
@@ -46,7 +46,7 @@ async def scrape_categories(crawler, categories: list[str], stop_date: Optional[
 
 def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tuple[bool, str]:
     for field in actor_input["filter_fields"]:
-        val = article.get(field)
+        val: Any = article.get(field)
         if not val:
             return True, f"missing field {field}"
         if isinstance(val, str) and val.strip() == "":
@@ -55,16 +55,16 @@ def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tupl
             return True, f"missing field {field}"
 
     if "all" not in actor_input["categories"]:
-        art_cat = article.get("category")
+        art_cat: Optional[str] = article.get("category")
         if not art_cat or art_cat not in crawler_categories["all_categories"]:
             return True, "article category unavailable"
         if art_cat not in actor_input["categories"]:
             return True, "category mismatch"
 
     if actor_input["keywords"]:
-        art_text = article.get("body") or ""
+        art_text: str = article.get("body") or ""
         if not isinstance(art_text, str) or not art_text.strip():
-            art_text = (article.get("title") or "") + (article.get("summary") or "")
+            art_text: str = (article.get("title") or "") + (article.get("summary") or "")
 
         if not any(kw in art_text for kw in actor_input["keywords"]):
             return True, "no keywords matched"

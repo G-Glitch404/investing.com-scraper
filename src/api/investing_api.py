@@ -106,7 +106,7 @@ class InvestingAPI:
             yield settings['INVESTING_ENDPOINT'] + f'/{category}/{starting_page}'
             starting_page += 1
 
-    def crawl_page(self, link: str, stop_date: dt.datetime) -> Generator[Article, None, None]:
+    def crawl_page(self, link: str, stop_date: Optional[dt.datetime] = None) -> Generator[Article, None, None]:
         self.driver.get(link)
         time.sleep(0.25)
 
@@ -168,7 +168,7 @@ class InvestingAPI:
                     self.logger.info(f'scrapped {articles_counter}/{max_articles} articles from "{topic_category}"')
                     return
 
-    def extract_article(self, article: dict, stop_date: Optional[dt.datetime]) -> Union[Article, bool]:
+    def extract_article(self, article: dict, stop_date: Optional[dt.datetime] = None) -> Union[Article, bool]:
         """ extract article data after collecting article url from main category page """
         self.driver.get(article['url'])
         time.sleep(0.25)
@@ -179,21 +179,21 @@ class InvestingAPI:
 
         return self.parse(
             item_html=article_page,
-            stop_date=stop_date,
             url=article['url'],
             title=article['title'],
             publisher=article['publisher'],
             summary=article['summary'],
+            stop_date=stop_date,
         )
 
     def parse(
         self,
         item_html: str,
-        stop_date: Optional[dt.datetime],
         url: str,
         title: str,
         publisher: str,
         summary: str,
+        stop_date: Optional[dt.datetime] = None,
     ) -> Union[Article, bool]:
         """ extract article data after collecting article url from main category page """
         article = Article()
@@ -222,8 +222,13 @@ class InvestingAPI:
         if self._crawling_category in ["stock_markets_analysis", "market_overview"]:
             article['article_type'] = 'analysis'
 
-        article['category'] = self._crawling_category.lower().replace('_', ' ').split('/')[1]
-        article['tags'] = ["Investing Article", article['category'].capitalize(), article['article_type']]
+        article['tags'] = ["Investing Article", article['article_type']]
+        try:
+            article['category'] = self._crawling_category.lower().replace('_', ' ').split('/')[1]
+            article['tags'].append(article['category'].capitalize())
+        except IndexError:
+            article['category'] = None
+
         article['summary'] = summary.replace('-- ', '  ').replace(') -', '  ').split('  ', 1)[-1] or None
 
         article['images'] = [
