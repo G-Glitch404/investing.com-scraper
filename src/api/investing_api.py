@@ -47,9 +47,10 @@ class InvestingAPI:
         if self._driver is None or not self._driver.is_connected():
             self._driver = Driver(
                 uc=True,
-                headless2=False,
+                headless2=True,
                 proxy=self.proxy,
                 browser='chrome',
+                page_load_strategy="eager",
                 dark_mode=True,
                 do_not_track=True,
                 user_data_dir=path(path('..', '.data_dirs'), f'InvestingCrawlerProfile{self.worker_id}'),
@@ -217,8 +218,8 @@ class InvestingAPI:
         if self._crawling_category in ["stock_markets_analysis", "market_overview"]:
             article['article_type'] = 'analysis'
 
-        article['category'] = self._crawling_category.capitalize().replace('_', ' ')
-        article['tags'] = ["Investing Article", article['category'].split('/', 1)[-1], article['article_type']]
+        article['category'] = self._crawling_category.lower().replace('_', ' ').split('/')[1]
+        article['tags'] = ["Investing Article", article['category'].split('/')[1], article['article_type']]
         article['summary'] = summary.replace('-- ', '  ').replace(') -', '  ').split('  ', 1)[-1] or None
 
         article['images'] = [

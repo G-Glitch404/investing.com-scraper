@@ -18,9 +18,9 @@ class Session(RequestsSession):
 
         self.get('https://www.google.com/')  # we add some cookies so the session is not empty
         if isinstance(proxy, list):
-            if isinstance(proxy, list): proxy = random.choice(proxy)
-            self.proxies = {"https": proxy, "http": proxy}  # then we add the proxies after so we check proxies
-            self.logger.info(f'proxy: {proxy} is implemented.')
+            if isinstance(proxy, list): proxy: str = random.choice(proxy)
+            self.proxies.update({"https": proxy, "http": proxy})  # then we add the proxies after so we check proxies
+            self.logger.info(f'proxy: {proxy} is implemented')
 
         self.logger.debug('Session initialized successfully')
 
@@ -32,8 +32,17 @@ class Session(RequestsSession):
     @retry
     def request(self, method, url, *args, **kwargs) -> Response:
         """accept http method and forward to parent"""
-        kwargs.update({'timeout': 120, 'impersonate': "chrome99", 'verify': False})
-        response: Response = super(Session, self).request(method=method, url=url, *args, **kwargs)
+        kwargs.update({
+            'method': method,
+            'url': url,
+            'headers': self.headers,
+            'cookies': self.cookies,
+            'timeout': 120,
+            'impersonate': "chrome99",
+            'verify': False
+        })
+
+        response: Response = super(Session, self).request(*args,  **kwargs)
         if not response:
             self.logger.error(f'{method} request failed')
             return Response()
