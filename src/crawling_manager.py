@@ -2,7 +2,7 @@ import math
 import asyncio
 import datetime as dt
 
-from typing import Any
+from typing import Any, Optional
 
 from src.settings import settings, crawler_categories
 from src.api.investing_api import InvestingAPI
@@ -14,7 +14,7 @@ from src.__init__ import rebuild_database, clean_processes
 logger = Logger("CrawlingManager")
 
 
-async def scrape_links(crawler, links: list[str], stop_date: dt.datetime, max_articles: int) -> None:
+async def scrape_links(crawler, links: list[str], stop_date: Optional[dt.datetime], max_articles: int) -> None:
     def _run() -> None:
         articles_counter = 0
         for link in links:
@@ -24,10 +24,11 @@ async def scrape_links(crawler, links: list[str], stop_date: dt.datetime, max_ar
                 if articles_counter >= max_articles:
                     return
 
+    logger.info(f"initiating a crawl for {len(links)} urls")
     await asyncio.to_thread(_run)
 
 
-async def scrape_categories(crawler, categories: list[str], stop_date: dt.datetime, max_articles: int) -> None:
+async def scrape_categories(crawler, categories: list[str], stop_date: Optional[dt.datetime], max_articles: int) -> None:
     def _run() -> None:
         articles_counter = 0
         for category in categories:
@@ -36,11 +37,10 @@ async def scrape_categories(crawler, categories: list[str], stop_date: dt.dateti
                 max_articles=max_articles,
                 stop_date=stop_date,
             ):
-                if article.insert_to_db():
-                    articles_counter += 1
-                if articles_counter >= max_articles:
-                    return
+                if article.insert_to_db(): articles_counter += 1
+                if articles_counter >= max_articles: return
 
+    logger.info(f"initiating a crawl for {len(categories)} categorises")
     await asyncio.to_thread(_run)
 
 
@@ -73,21 +73,29 @@ def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tupl
 
 
 async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> None:
-    counter, retries = 0, 0
-    while not done.is_set() or Database().fetch_all("articles"):
-        await asyncio.sleep(2)
+    """ push the data to the apify platform storage """
+    logger.debug(f'started the database consumer loop max_articles: {actor_input["max_articles"]}')
+    articles_counter, retries = 0, 0
 
-        rows = Database().fetch_all("articles")
+    while not done.is_set() and articles_counter < actor_input["max_articles"]:
+        await asyncio.sleep(10)
+
+        rows: list[tuple[Any, ...]] = list(Database().fetch_all("articles"))
         if not rows:
             retries += 1
-            if done.is_set() and retries >= 3:
+            if done.is_set(): break
+            if retries >= 3:
+                done.set()
                 break
             continue
 
         retries = 0
 
+        logger.debug(f"found {len(rows)} new articles in the database, consuming..")
+
         for db_article in rows:
-            if counter >= actor_input["max_articles"]:
+            if articles_counter >= actor_input["max_articles"]:
+                logger.debug(f"user got enough articles '{articles_counter}', forcing an immediate stop right now...")
                 done.set()
                 break
 
@@ -114,11 +122,12 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
             filter_status = article_filter(article, actor_input)
             if not filter_status[0]:
                 await actor.push_data(article)
-                counter += 1
+                articles_counter += 1
             else: logger.warning(f"Dropped an article reason:  {filter_status[1]}  -  url:  {article['url']}")
 
             Database().delete_record(db_article[0])
 
+    logger.info(f"push loop finished and exiting, found articles {articles_counter} article")
     done.set()
 
 
@@ -156,3 +165,4 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
         )
 
     await asyncio.gather(*tasks)
+

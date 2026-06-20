@@ -30,13 +30,13 @@
       "nullable": false,
       "editor": "select",
       "prefill": ["all"],
-      "default": ["latest"],
+      "default": ["latest-news"],
       "items": {
         "type": "string",
         "enum": [
           "all",
           "general",
-          "latest",
+          "latest-news",
           "popular",
           "world",
           "politics",

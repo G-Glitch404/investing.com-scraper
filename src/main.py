@@ -1,4 +1,3 @@
-import asyncio
 import datetime as dt
 from typing import Any, Optional
 
@@ -16,7 +15,7 @@ def get_client_inputs(actor_input: dict) -> dict[str, Any]:
     start_urls: Optional[list[dict]] = actor_input.get('links', [])
     proxy: Optional[dict] = actor_input.get('proxyConfiguration', {"useApifyProxy": False})
     keywords: Optional[list[str]] = actor_input.get('keywords', [])
-    categories: list[str] = actor_input.get('categories', ["latest"])
+    categories: list[str] = actor_input.get('categories', ["latest-news"])
     filter_fields: Optional[list[dict]] = actor_input.get('filterFields', [])
     max_articles: int = actor_input.get('maxArticles', 100)
     stop_date: Optional[str] = actor_input.get('stopDate')
@@ -42,10 +41,7 @@ def get_client_inputs(actor_input: dict) -> dict[str, Any]:
 
 
 async def main() -> None:
-    """
-     Apify Actor's main coroutine for executing the crawler
-    """
-
+    """ Apify Actor's main coroutine for executing the Actor """
     async with Actor:
         control_logger.info('Actor Initialized processing inputs...')
 
@@ -97,9 +93,3 @@ async def main() -> None:
 
         await Actor.set_status_message('Actor is done scraping now exiting...')
         await Actor.exit()
-
-
-if __name__ == "__main__":
-    asyncio.run(
-        main()
-    )

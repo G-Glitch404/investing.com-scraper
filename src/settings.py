@@ -10,7 +10,7 @@ from src.util.utils import path, DEFAULT_DATE_FORMAT
 settings: dict[str, Any] = {
     "INVESTING_ENDPOINT": "https://www.investing.com",
 
-    "VERBOSE": False,
+    "VERBOSE": True,
     "LOGGING_LEVEL": logging.DEBUG,
 
     "DATABASE": path(
@@ -25,8 +25,8 @@ settings: dict[str, Any] = {
 
 
 crawler_categories: dict[str, Any] = {
-    "categories_len": 27,  # change it when categories are changed downside
-    "all_categories": ("popular", "stockmarket", "commodities", "forex", "economics", "economy", "world", "politics", "stock_markets_analysis", "market_overview", "trading", "ideas", "swot", "sec_filings", "press_releases", "earnings_reports", "companies", "general", "cryptocurrencies", "bitcoin", "ethereum", "xrp", "cardano", "sol", "polkadot", "shiba", "dogecoin"),
+    "categories_len": 28,  # change it when categories are changed downside
+    "all_categories": ("latest-news", "popular", "stockmarket", "commodities", "forex", "economics", "economy", "world", "politics", "stock_markets_analysis", "market_overview", "trading", "ideas", "swot", "sec_filings", "press_releases", "earnings_reports", "companies", "general", "cryptocurrencies", "bitcoin", "ethereum", "xrp", "cardano", "sol", "polkadot", "shiba", "dogecoin"),
     "special_categories": ("stockmarket", "economy", "reports", "cryptocurrencies"),
 
     # special categories

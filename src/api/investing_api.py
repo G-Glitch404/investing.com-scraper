@@ -117,7 +117,11 @@ class InvestingAPI:
 
         selector = Selector(text=response, type='html')
         articles: list = selector.css(se['articles_section'])
-        if len(articles) <= 0: articles: list = selector.css(se['analysis_section'])
+        if len(articles) <= 0:
+            articles: list = selector.css(se['analysis_section'])
+
+        if articles:
+            self.logger.debug(f"found and crawling {len(articles)} article from page_link: {link}")
 
         for article_html in articles:
             article_data: dict[str, Any] = {
