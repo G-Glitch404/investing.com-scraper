@@ -17,6 +17,8 @@ class Article:
     publisher: str = None
     authors: list[str] = None
     category: str = None
+    sentiment: str = None
+    sentiment_score: float = None
     article_type: str = None
     published: dt.datetime = None
     modified: dt.datetime = None

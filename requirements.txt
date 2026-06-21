@@ -6,3 +6,4 @@ seleniumbase~=4.47.1
 selenium~=4.41.0
 apify~=3.3.0
 requests
+vadersentiment~=3.3.2

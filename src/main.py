@@ -93,3 +93,9 @@ async def main() -> None:
 
         await Actor.set_status_message('Actor is done scraping now exiting...')
         await Actor.exit()
+
+
+if __name__ == '__main__':
+    import asyncio
+
+    asyncio.run(main())

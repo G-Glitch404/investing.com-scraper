@@ -2,10 +2,11 @@ import json
 import time
 import datetime as dt
 
+from typing import Any, Optional, Union, Generator, Callable
 from parsel import Selector
 from seleniumbase import Driver
 from selenium.common.exceptions import InvalidSessionIdException, NoSuchWindowException
-from typing import Any, Optional, Union, Generator, Callable
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from src.settings import settings
 from src.items import Article
@@ -22,6 +23,7 @@ driver_exceptions: tuple = (
 
 class InvestingAPI:
     logger = Logger("InvestingAPI")
+    sentiment_analyzer = SentimentIntensityAnalyzer()
 
     def __init__(self, worker_id: Optional[int] = None, proxy: dict = settings["PROXY"]) -> None:
         self._driver = None
@@ -248,6 +250,18 @@ class InvestingAPI:
         article['body'] = clean_text(
             ' '.join(article['body'].css(se['content']).extract())
         )
+
+        article_text: str = (
+                article["title"] + "\n" +
+                article["summary"] + "\n" +
+                article["body"]
+        )
+        sentiment_score = self.sentiment_analyzer.polarity_scores(article_text)["compound"]
+
+        article["sentiment_score"] = sentiment_score
+        if sentiment_score > 0.1: article["sentiment"] = "positive"
+        elif sentiment_score < -0.1: article["sentiment"] = "negative"
+        else: article["sentiment"] = "neutral"
 
         return article
 

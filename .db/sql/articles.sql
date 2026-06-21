@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS "articles" (
     "publisher"             TEXT,
     "authors"               TEXT,
     "category"              TEXT,
+    "sentiment"             TEXT,
+    "sentiment_score"       INTEGER,
     "article_type"          TEXT,
     "published"             TEXT,
     "modified"              TEXT,
