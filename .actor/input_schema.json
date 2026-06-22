@@ -20,9 +20,7 @@
       "type": "string",
       "editor": "select",
       "enumSuggestedValues": [""],
-      "default": "",
-      "minItems": 0,
-      "maxItems": 100
+      "default": ""
     },
 
     "categories": {
@@ -33,7 +31,7 @@
       "maxItems": 13,
       "nullable": true,
       "editor": "select",
-      "prefill": null,
+      "prefill": [null],
       "default": ["latest-news"],
       "items": {
         "type": "string",
