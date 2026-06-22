@@ -18,7 +18,7 @@ settings: dict[str, Any] = {
     ),
 
     "PROXY": None,
-    "WORKERS": 2,
+    "WORKERS": 1,
     "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc),
     "ARTICLES_FOUND": Value('i', 0),
 }
