@@ -15,7 +15,7 @@ def get_client_inputs(actor_input: dict) -> dict[str, Any]:
     start_urls: Optional[list[dict]] = actor_input.get('links', [])
     proxy: Optional[dict] = actor_input.get('proxyConfiguration', {"useApifyProxy": False})
     keywords: Optional[list[str]] = actor_input.get('keywords', [])
-    categories: list[str] = actor_input.get('categories', ["companies"])
+    categories: list[str] = actor_input.get('categories', [])
     filter_fields: Optional[list[dict]] = actor_input.get('filterFields', [])
     max_articles: int = actor_input.get('maxArticles', 100)
     stop_date: Optional[str] = actor_input.get('stopDate')
@@ -93,9 +93,3 @@ async def main() -> None:
 
         await Actor.set_status_message('Actor is done scraping now exiting...')
         await Actor.exit()
-
-
-if __name__ == '__main__':
-    import asyncio
-
-    asyncio.run(main())

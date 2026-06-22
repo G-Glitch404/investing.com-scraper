@@ -2,8 +2,8 @@ curl-cffi~=0.15.0
 browserforge~=1.2.4
 parsel~=1.11.0
 psutil~=7.2.2
+vadersentiment~=3.3.2
 seleniumbase~=4.47.1
 selenium~=4.41.0
 apify~=3.3.0
 requests
-vadersentiment~=3.3.2

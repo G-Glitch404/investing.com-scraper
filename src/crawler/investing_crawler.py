@@ -269,26 +269,3 @@ class InvestingCrawler:
         else: article["sentiment"] = "neutral"
 
         return article
-
-
-if __name__ == '__main__':
-    _session = InvestingCrawler()
-    _start: float = time.perf_counter()
-
-    _counter: int = 0
-    _urls: set[str] = set()  # for detecting duplicates
-    for __article in _session.crawl(
-            topic_category='latest',
-            stop_date=None,
-            max_articles=334
-    ):
-        __article.insert_to_db()
-        _urls.add(__article['url'])
-        for k, v in __article:
-            print(f'{k}: {v}')
-        print('-' * 100)
-        _counter += 1
-
-    _end: float = time.perf_counter()
-    print(f'\nFound {_counter} articles in {round(_end - _start, 1)} secs')
-    print(f'URLs: {len(_urls)}/{_counter}')

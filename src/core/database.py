@@ -60,15 +60,6 @@ class Database(threading.Thread):
         return True
 
     @catch_exceptions
-    def delete_record(self, record_id: int,  table_name: str = 'articles') -> None:
-        """ delete a record from a table """
-        with self.mutex:
-            self._connect()
-            self.cursor.execute(f'DELETE FROM {table_name} WHERE id={record_id};')
-            self.conn.commit()
-            self._close()
-
-    @catch_exceptions
     def execute(self, sql_query: str) -> sqlite3.Cursor:
         """ execute a sql query """
         with self.mutex:
