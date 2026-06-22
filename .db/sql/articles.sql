@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS "articles" (
 	"id"	                INTEGER NOT NULL,
+	"pushed"                BOOLEAN NOT NULL DEFAULT 0,
 	"icon"                  TEXT,
     "title"                 TEXT UNIQUE,
     "summary"               TEXT,

@@ -45,8 +45,6 @@ class Article:
             values=values,
         )
 
-        if status:
-            settings["ARTICLES_FOUND"].value += 1
         return status
 
     def get(self, key: str) -> Any:

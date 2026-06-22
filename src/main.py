@@ -15,7 +15,7 @@ def get_client_inputs(actor_input: dict) -> dict[str, Any]:
     start_urls: Optional[list[dict]] = actor_input.get('links', [])
     proxy: Optional[dict] = actor_input.get('proxyConfiguration', {"useApifyProxy": False})
     keywords: Optional[list[str]] = actor_input.get('keywords', [])
-    categories: list[str] = actor_input.get('categories', ["latest-news"])
+    categories: list[str] = actor_input.get('categories', [])
     filter_fields: Optional[list[dict]] = actor_input.get('filterFields', [])
     max_articles: int = actor_input.get('maxArticles', 100)
     stop_date: Optional[str] = actor_input.get('stopDate')
@@ -86,7 +86,7 @@ async def main() -> None:
         await crawling_manager(Actor, actor_input)
 
         control_logger.info(
-            f'Actor Finished Scraping - found {settings["ARTICLES_FOUND"].value} articles (duplications included) and took '
+            f'Actor Finished Scraping - found {settings["ARTICLES_FOUND"].value} articles and took '
             f'{round((dt.datetime.now(tz=dt.timezone.utc) - settings["TODAY_DATE"]).total_seconds() / 60, 2)}'
             f' minutes now exiting'
         )

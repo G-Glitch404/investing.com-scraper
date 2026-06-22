@@ -1,4 +1,4 @@
-from src.api.investing_api import InvestingAPI
+from src.crawler.investing_api import InvestingAPI
 
 max_articles: int = 10
 categories: list[str] = ["latest-news"]

@@ -5,7 +5,7 @@ from typing import Any, Optional, Coroutine, Generator
 
 from items import Article
 from src.settings import settings, crawler_categories
-from src.api.investing_api import InvestingAPI
+from src.crawler.investing_crawler import InvestingCrawler
 from src.core.database import Database
 from src.core.logger import Logger
 from src.__init__ import rebuild_database, clean_processes
@@ -53,16 +53,16 @@ def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tupl
 async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> None:
     """ push the data to the apify platform storage """
     logger.debug(f'started the database consumer loop max_articles: {actor_input["max_articles"]}')
-    articles_counter, retries = 0, 0
+    retries: int = 0
 
-    while not done.is_set() and articles_counter < actor_input["max_articles"]:
+    while not done.is_set() and settings["ARTICLES_FOUND"].value < actor_input["max_articles"]:
         await asyncio.sleep(10)
 
-        rows: list[tuple[Any, ...]] = list(Database().fetch_all("articles"))
+        rows: list[tuple[Any, ...]] = [row for row in Database().fetch_all("articles") if not row[1]]
         if not rows:
             retries += 1
             if done.is_set(): break
-            if retries >= 3:
+            if retries > 3:
                 done.set()
                 break
             continue
@@ -72,28 +72,30 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
         logger.debug(f"found {len(rows)} new articles in the database, consuming..")
 
         for db_article in rows:
-            if articles_counter >= actor_input["max_articles"]:
-                logger.debug(f"user got enough articles '{articles_counter}', forcing an immediate stop right now...")
+            if settings["ARTICLES_FOUND"].value >= actor_input["max_articles"]:
+                logger.debug(f"user got enough articles '{settings["ARTICLES_FOUND"].value}', forcing an immediate stop right now...")
                 done.set()
                 break
 
-            authors = db_article[5].split(" , ") if db_article[5] else []
-            tags = db_article[10].split(" , ") if db_article[10] else []
-            images = db_article[13].split(" , ") if db_article[13] else []
+            Database().execute(f"UPDATE articles SET pushed=1 WHERE id = {db_article[0]};")
+
+            authors: list[str] = db_article[6].split(" , ") if db_article[6] else []
+            tags: list[str] = db_article[11].split(" , ") if db_article[11] else []
+            images: list[str] = db_article[14].split(" , ") if db_article[14] else []
 
             article = {
-                "icon": db_article[1],
-                "title": db_article[2],
-                "summary": db_article[3],
-                "publisher": db_article[4],
+                "icon": db_article[2],
+                "title": db_article[3],
+                "summary": db_article[4],
+                "publisher": db_article[5],
                 "authors": authors,
-                "category": db_article[6],
-                "article_type": db_article[7],
-                "published": db_article[8],
-                "modified": db_article[9],
+                "category": db_article[7],
+                "article_type": db_article[8],
+                "published": db_article[9],
+                "modified": db_article[10],
                 "tags": tags,
-                "body": db_article[11],
-                "url": db_article[12],
+                "body": db_article[12],
+                "url": db_article[13],
                 "images": images,
             }
 
@@ -102,18 +104,16 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
                 await actor.push_data(article)
                 await charge_user(actor, 'pushed-result')
                 logger.info("charged user for a valid article result")
-                articles_counter += 1
+                settings["ARTICLES_FOUND"].value += 1
             else: logger.warning(f"Dropped an article reason:  {filter_status[1]}  -  url:  {article['url']}")
 
-            Database().delete_record(db_article[0])
-
-    logger.info(f"push loop finished and exiting, found articles {articles_counter} article")
+    logger.info(f"push loop finished and exiting, found articles {settings["ARTICLES_FOUND"].value} article")
     done.set()
 
 
 async def crawl_worker(
-        crawler: InvestingAPI,
-        done_event: asyncio.Event,
+        crawler: InvestingCrawler,
+        done: asyncio.Event,
         work_units: list[dict[str, Any]],
         max_articles_per_worker: int,
         stop_date: Optional[dt.datetime] = None,
@@ -123,7 +123,7 @@ async def crawl_worker(
         articles_counter: int = 0
 
         for item in work_units:
-            if (articles_counter >= max_articles_per_worker) or done_event.is_set(): return
+            if (articles_counter >= max_articles_per_worker) or done.is_set(): return
 
             item_type: str = item.get("type")
             remaining: int = max_articles_per_worker - articles_counter
@@ -141,6 +141,7 @@ async def crawl_worker(
                 if shard_step > 1:
                     generator: Generator[Article, None, None] = _crawl_category_shard(
                         crawler=crawler,
+                        done=done,
                         topic_category=item["value"],
                         stop_date=stop_date,
                         starting_page=starting_page,
@@ -210,7 +211,8 @@ def _build_work_units(links: list[str], categories: list[str], workers: int) -> 
 
 
 def _crawl_category_shard(
-        crawler: InvestingAPI,
+        crawler: InvestingCrawler,
+        done: asyncio.Event,
         topic_category: str,
         stop_date: Optional[dt.datetime] = None,
         starting_page: int = 1,
@@ -219,7 +221,7 @@ def _crawl_category_shard(
     """ crawl category with a stepping mechanism so workers don't interfere with each other's work """
     page_generator: Generator[str, None, None] = crawler.pagination(topic=topic_category, starting_page=starting_page)
 
-    while True:
+    while not done.is_set():
         page_url: str = next(page_generator)
 
         for article in crawler.crawl_page(link=page_url, stop_date=stop_date):
@@ -254,8 +256,8 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
     chunks: list[list[dict[str, Any]]] = _split_evenly(work_units, workers)
     limits_per_worker: list[int] = _split_limits(actor_input["max_articles"], workers)
     tasks: list[Coroutine] = [push_data(actor, actor_input, done)]
-    workers_crawlers: list[InvestingAPI] = [
-        InvestingAPI(
+    workers_crawlers: list[InvestingCrawler] = [
+        InvestingCrawler(
             worker_id=i + 1,
             proxy=(actor_input["proxy"] or None)
         )
@@ -278,7 +280,7 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
         tasks.append(
             crawl_worker(
                 crawler=crawler,
-                done_event=done,
+                done=done,
                 work_units=chunk,
                 stop_date=actor_input["stop_date"],
                 max_articles_per_worker=limit,

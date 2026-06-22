@@ -15,7 +15,7 @@
     },
 
     "keywords": {
-      "title": "Filter by keywords",
+      "title": "Filter by keywords (Optional)",
       "description": "add or remove keywords to search for\n\nformat examples\n- single keyword: bitcoin\n- phrase: \"climate change\"\n- multiple entries: add each keyword/phrase as its own list item\n\nnote: leaving this list empty means no keyword filtering will be applied, keywords filtring is very slow and CaseSensitive.",
       "type": "string",
       "editor": "select",
@@ -38,7 +38,6 @@
       "items": {
         "type": "string",
         "enum": [
-          "all",
           "general",
           "latest-news",
           "popular",
@@ -53,7 +52,6 @@
           "cryptocurrencies"
         ],
         "enumTitles": [
-          "All News & Articles",
           "General Daily News",
           "Latest News & Articles",
           "Popular Finance News",

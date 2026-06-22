@@ -1,5 +1,6 @@
 import json
 import time
+import random
 import datetime as dt
 
 from typing import Any, Optional, Union, Generator, Callable
@@ -21,7 +22,7 @@ driver_exceptions: tuple = (
 )
 
 
-class InvestingAPI:
+class InvestingCrawler:
     logger = Logger("InvestingAPI")
     sentiment_analyzer = SentimentIntensityAnalyzer()
 
@@ -110,11 +111,11 @@ class InvestingAPI:
 
     def crawl_page(self, link: str, stop_date: Optional[dt.datetime] = None) -> Generator[Article, None, None]:
         self.driver.get(link)
-        time.sleep(0.25)
+        time.sleep(0.2)
 
         try: response: str = self.driver.page_source
         except AttributeError as e:
-            self.logger.error(f"couldn't scrape articles from Investing-API - error: '{e}'")
+            self.logger.error(f"couldn't scrape articles from Investing-Crawler - error: '{e}'")
             return
 
         selector = Selector(text=response, type='html')
@@ -125,6 +126,7 @@ class InvestingAPI:
         if articles:
             self.logger.debug(f"found and crawling {len(articles)} article from page_link: {link}")
 
+        found_articles: list[dict[str, Any]] = []
         for article_html in articles:
             article_data: dict[str, Any] = {
                 "title": clean_text(article_html.css(se['title']).extract()),
@@ -135,11 +137,13 @@ class InvestingAPI:
                 "url": article_html.css(se['url']).get()
             }
 
-            if 'Investing.com Studios' in article_data['publisher'].strip():
-                continue
+            if 'Investing.com Studios' in article_data['publisher'].strip(): continue
+            found_articles.append(article_data)
 
-            if article_obj := self.extract_article(article_data, stop_date):
-                yield article_obj
+        random.shuffle(found_articles)  # less bot behavior
+        for found_article in found_articles:
+            article_obj: Union[Article, bool] = self.extract_article(found_article, stop_date)
+            if article_obj: yield article_obj
 
     def crawl(
             self,
@@ -173,7 +177,8 @@ class InvestingAPI:
     def extract_article(self, article: dict, stop_date: Optional[dt.datetime] = None) -> Union[Article, bool]:
         """ extract article data after collecting article url from main category page """
         self.driver.get(article['url'])
-        time.sleep(0.25)
+        time.sleep(0.2)
+
         try: article_page: str = self.driver.page_source
         except (AttributeError, TypeError) as e:
             self.logger.error(f"couldn't scrape article: {article['url']} from Investing-API - error: '{e}'")
@@ -267,7 +272,7 @@ class InvestingAPI:
 
 
 if __name__ == '__main__':
-    _session = InvestingAPI()
+    _session = InvestingCrawler()
     _start: float = time.perf_counter()
 
     _counter: int = 0
