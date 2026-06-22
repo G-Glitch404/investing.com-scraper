@@ -5,7 +5,7 @@ from apify import Actor
 
 from src.settings import settings, crawler_categories
 from src.core.logger import Logger
-from crawling_manager import crawling_manager
+from src.crawling_manager import crawling_manager
 from src.util.utils import format_date, DEFAULT_DATE_FORMAT
 
 control_logger = Logger("Control")

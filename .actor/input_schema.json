@@ -21,7 +21,7 @@
       "maxItems": 13,
       "nullable": true,
       "editor": "select",
-      "prefill": [""],
+      "prefill": [],
       "default": ["latest-news"],
       "items": {
         "type": "string",
