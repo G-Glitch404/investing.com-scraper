@@ -1,95 +1,466 @@
-## What does Investing.com News Scraper do?
-Investing Scraper will enable you to get all the news Articles you want from Investing.com since they have no API.
+# Investing.com Scraper
 
-This Investing Scraper will let you scrape and extract large datasets as often as you need to. The structured data can be downloaded as XML, JSON, CSV, HTML, and Excel, so that you can use it in your own applications, spreadsheets, reports, or other tools.
+[Open-source](https://github.com/G-Glitch404/investing.com-scraper) actor to scrape Investing.com news articles, analysis pages, article details, images, and structured metadata with flexible filtering and fast bulk extraction.
 
-Investing Scraper will scrape:
-- Image           -     The title of the article
-- Title           -     The title of the article
-- Category        -     The Category that the article belongs to
-- Publisher       -     Name of the Publishing agency.
-- Date            -     Publishing date of article and the website might replace it with last article update date
-- Link            -     The url of scraped articles
-- Comments        -     Amount of comments and All the comments and replies on the article
-- Paragraph       -     All text of the article body, and it is filtered to perfection "almost" ;)
+## Current limitations and downsides of Investing.com Scraper
+    - basically it's all performance issues 
+* This scraper depends on browser automation so it's a bit slow but very reliable
+* Keyword filtering is case-sensitive and can be slow on large runs
+* Parallel crawling is limited by site behavior, especially when a single category is sharded across workers
+* The Logs tab for every run contains detailed information about the run, including errors, warnings, and debug information, so always check how the crawl is doing though it 
 
-## Why should I use Investing Scraper ?
-- Investing.com has **150Million** visits per month and is a great data source for Finance and Investing news articles.
-- Saves time if You have no time to build your own scraper from scratch
-- It doesn't need any proxies.
-- 1000 articles took 190 seconds for date range "anytime", so you can scrape at a rate of 330/min.
-- The first 30 - 45 seconds the docker is building your image so this is why it might be slow sometimes
+## What does Investing.com Scraper do?
 
-## Here are just some of the ways you could use that data:
-- Having a grate and fast daily news about finance
-- Market research and marketing camping's targeting finance or worldwide news
-- Analyzing Articles and extract keywords for marketing opportunities
-- Juicy Burgers for machine learning and AI modules
-- Generating content about finance and news
+**Investing.com Scraper** is a **high-reliability** Apify Actor for crawling Investing.com content. It can extract news articles, analysis articles, category pages, custom article URLs, all with sentiment analysis, images, article metadata, article bodies, publishers, dates, and tags from Investing.com sections and direct article links.
 
-If you would like more inspiration on how scraping Investing.com Will help your business or organization, check out our [industry pages](https://apify.com/industries).
+It is built for structured extraction and for building datasets you can use in analytics, market monitoring, research, archiving, NLP, automation workflows, and financial intelligence.
+
+### Investing.com Scraper can scrape
+
+* News article pages
+* Analysis pages
+* Category listing pages
+* Custom article URLs
+* Article images
+* Article titles
+* Article summaries
+* Article categories
+* Article publishers
+* Publication and update dates
+* Full article body text
+* Tags and extracted metadata
+
+---
+
+## Why scrape Investing.com?
+
+Investing.com is one of the most visited financial news platforms on the internet and is a valuable source of market-related news, analysis, and article metadata. It is useful for tracking what is happening in finance, crypto, macroeconomics, stocks, and trading.
+
+Here are just some of the ways you could use Investing.com data:
+
+* Daily finance and market monitoring
+* Trend detection and market sentiment analysis
+* Keyword extraction for trading or marketing opportunities
+* Research on financial news cycles and publisher coverage
+* Archiving financial articles and analysis
+* Training datasets for NLP and machine learning
+* Monitoring public reaction to financial events and market moves
+
+If you would like more inspiration on how scraping Investing.com could help your business or organization, check out the [Apify industry pages](https://apify.com/industries).
+
+---
+
+## Supported URL types
+
+You can start the Actor from different kinds of Investing.com URLs. The table below explains what each one does.
+
+| URL example                                              | What the scraper does                         |
+|----------------------------------------------------------|-----------------------------------------------|
+| `https://www.investing.com/news/latest-news`             | Scrapes latest news listing pages             |
+| `https://www.investing.com/news/latest-news/3`           | Scrapes page 3 of latest news                 |
+| `https://www.investing.com/news/cryptocurrency-news`     | Scrapes cryptocurrency news listing pages     |
+| `https://www.investing.com/news/stock-market-news`       | Scrapes stock market news listing pages       |
+| `https://www.investing.com/news/economic-indicators`     | Scrapes economic indicator news listing pages |
+| `https://www.investing.com/news/world-news`              | Scrapes world news listing pages              |
+| `https://www.investing.com/news/politics`                | Scrapes politics news listing pages           |
+| `https://www.investing.com/news/company-news`            | Scrapes company news listing pages            |
+| `https://www.investing.com/news/.../article-slug...`     | Scrapes a single article page                 |
+| `https://www.investing.com/analysis/.../article-slug...` | Scrapes a single analysis page                |
+
+---
 
 ## How to scrape Investing.com
-It's easy to scrape [Investing.com](https://www.Investing.com/news/latest-news) with Investing Scraper.
-Just follow these steps to get your data at the speed of light.
 
-1. Click on Try for free.
-2. Use the default start URLs or customize them to only scrape a section or category on Investing.com.
-3. Select the maximum number of items you want to scrape default is 100.
-4. Click on Run.
-5. preview or export your data from the Dataset tab.
+It is easy to use **Investing.com Scraper**.
 
-## How much will it cost to use my Investing Scraper?
-- You get 3 days trial to try the scraper
-- This Scraper is 10$ a month plus the Apify platform usage.
-- 1000 articles could potentially cost $0.1 of platform usage
-  - with the free apify account you can scrape around 50,000 daily news and archived Articles
-  - Investing.com has around 250K articles and archived news and alot of daily data gets uploaded every single day
+1. Click on **Try for free**
+2. Enter the Investing.com URLs or categories you want to scrape
+3. Configure optional filters like keywords, stop date, and field selection
+4. Click on **Run**
+5. Preview or download your data from the **Dataset** tab
 
-## A sample of the results that will be provided by the Scraper
-    [
-        {"Image": "ARTICLE_IMAGE", "link": "ARTICLE_URL", "title": "ARTICLE_TITLE", "category": "ARTICLE_CATEGORY", "PUBLISHER": "PUBLISHING_AGANCY", "date": "ARTICLE_DATE", "comments": "ALL_ARTICLE_COMMENTS_AND_REPLIES", "paragraph": "All_ARTICLE_TEXT"},
+---
 
-        {
-            "image": "https://i-invdn-com.investing.com/news/LYNXMPEE0214A_L.jpg",
-            "title": "'Ripple Is Wrong' Claims SEC In New Filing, Shibarium Announces New Era in SHIB Burns, Arthur Hayes Predicts Crucial BTC Bottom to Watch: Crypto News Digest by U.Today",
-            "category": "cryptocurrency news",
-            "publisher": "Reuters",
-            "date": [
-              "Published Jan 31, 2024 02:57PM ET",
-              "Updated Jan 31, 2024 06:00PM ET"
-            ],
-            "comments": [
-              1,
-              [
-                [
-                  "Johnny Crash",
-                  "2024-02-01 03:40:09",
-                  "Burn all the SHIB you like, it's still a 💩coin",
-                  "https://www.investing.com/members/229823066"
-                ]
-              ]
-            ],
-            "link": "https://www.investing.com/news/cryptocurrency-news/ripple-is-wrong-claims-sec-in-new-filing-shibarium-announces-new-era-in-shib-burns-arthur-hayes-predicts-crucial-btc-bottom-to-watch-crypto-news-digest-by-utoday-3289076",
-            "paragraph": "U.Today - U.Today presents the top three news stories over the past day.\nXRP case: \"Ripple is wrong\" claims SEC in new filingFollowing Ripple's objection to the SEC's recent request to provide audited financial statements and contracts related to XRP sales, the regulatory agency has fired back. In its latest filing, the SEC refutes Ripple's argument that the SEC's motion is \"untimely,\" asserting that seeking remedies-related discovery is not time-barred and is the standard course of action for securities law violations. The regulator also stressed the importance of post-complaint facts in determining remedies, refuting Ripple's claim that such information does not affect the court's decisions. The SEC concluded that the discovery requests are both procedurally proper and highly relevant, stating that Ripple's procedural objections lack validity.Shibarium announces new era in SHIB burns with transformative burning mechanismLucie, prominent Shiba Inu team member, announced in her recent X post that Shibarium is entering a new era with a transformative new mechanism for SHIB burning. As stated in an article of the latest issue of the SHIB Magazine, the mechanism will transfer tokens to unspendable blockchain wallets, aiming to reduce the current circulating supply of Shiba Inu. Per the article, the mechanism is “designed to reduce token supply strategically” in order to potentially increase SHIB’s value and benefit the Shibarium ecosystem. This innovative burn method will be tested on the Shibarium testnet, also known as Puppynet. Instead of operating in manual mode like it did previously, it will now operate automatically. While testing the new mechanism, the SHIB team will be making several improvements to \"enhance efficiency and reliability.\" Only after that, it will be launched on the Shibarium mainnet.Arthur Hayes predicts crucial Bitcoin (BTC) bottom to watchIn a recent Substack post, Arthur Hayes, BitMEX cofounder and former CEO, has shared a major Bitcoin price prediction as to when the largest crypto will test its bottom. Drawing conclusions from the world economic situation, Hayes noted how susceptible the abated inflationary pressures are to returning in no time. Based on this, he forecasted a 30% correction from the spot Bitcoin Exchange Traded Fund (ETF) high of $48,000. If this prediction comes true, Hayes sees BTC dropping to the $30,000 and $35,000 price range. The price of Bitcoin has plummeted since the SEC approved the 11 spot BTC ETFs that now trade on the market. At the time of writing, Bitcoin is changing hands at $39,795, down 0.70% over the past 24 hours, per CoinMarketCap.This article was originally published on U.Today"
-        }
-    ]
+## Input reference
+    - one must be provided links or categories, but both works too    
 
+| Input                |    Type | Required | Description                                 |
+|----------------------|--------:|---------:|---------------------------------------------|
+| `links`              |   array |       no | Investing.com URLs to crawl                 |
+| `keywords`           |  string |       no | Keyword filtering input used by the scraper |
+| `categories`         |   array |       no | Category names to crawl                     |
+| `stopDate`           |  string |       no | Earliest allowed article date               |
+| `filterFields`       |   array |       no | Drop articles missing selected fields       |
+| `maxArticles`        | integer |      yes | Maximum number of articles to collect       |
+| `proxyConfiguration` |  object |       no | Apify Proxy or custom proxy settings        |
 
-## Tips for scraping Investing.com using Investing Scraper for the best results
-- Date Range is an excellent feature you should try it to scrape all the articles that pleases you
-- Date Range Feature has a huge positive effect on the performance
-- Choose you specified startUrls to the best results
+---
+
+## Input options
+
+## Links
+
+**Type:** array  
+**Editor:** `requestListSources`  
+**Required:** no  
+**Minimum items:** 0  
+**Maximum items:** 100
+
+This field is used for Investing.com URLs to scrape from them.
+
+The Actor supports:
+
+* article URLs
+* analysis URLs
+* category listing URLs
+* latest news URLs
+
+### How it behaves
+
+* Each link is processed independently
+* The scraper extracts the article or listing content from each URL
+* Multiple links can be split across workers automatically
+* If a link is a listing page, the Actor crawls articles from that page
+
+### Important notes
+
+* Keep the number of links reasonable if you are scraping large pages
+* Large source lists with high article limits can increase runtime
+* For large jobs, start with a small number of links first
+* If you only need one article, provide a single article URL
+
+### Examples
+
+* One latest-news URL for broad discovery
+* One article URL when you need a single page
+* Multiple category URLs when you want a topic-wide dataset
+* A category URL plus direct article URLs when you want both breadth and depth
+
+---
+
+## Keywords
+
+**Type:** string  
+**Editor:** `select`  
+**Required:** no
+
+This lets you filter articles by keyword or phrase.
+
+### Examples
+
+* `bitcoin`
+* `climate change`
+* `fed`
+* `earnings`
+* `crypto`
+
+### How it works
+
+The Actor keeps only articles that match at least one keyword or phrase, depending on your implementation.
+
+### Best practices
+
+* Use short and specific keyword lists
+* Use phrases when you need tighter matching
+* Keep the keyword list focused to reduce noisy results
+* Combine keywords with stop dates for better dataset relevance
+
+### When to use it
+
+* topic monitoring
+* market tracking
+* niche content collection
+* research around specific financial events
+* reducing unnecessary output from broad sources
+
+### Notes
+
+* Keyword matching is case-sensitive
+* Empty keyword input disables keyword filtering
+* Phrase matching is often better than single generic terms
+
+---
+
+## Categories
+
+**Type:** array  
+**Editor:** `select`  
+**Required:** yes  
+**Minimum items:** 1  
+**Maximum items:** 13
+
+This field is used for Investing.com category crawling.
+
+### Supported categories
+
+* all
+* general
+* latest-news
+* popular
+* world
+* politics
+* companies
+* stockmarket
+* economy
+* forex
+* trading
+* reports
+* cryptocurrencies
+
+### Category labels
+
+* `all` → All News & Articles
+* `general` → General Daily News
+* `latest-news` → Latest News & Articles
+* `popular` → Popular Finance News
+* `world` → World News
+* `politics` → Politics News
+* `companies` → Companies News
+* `stockmarket` → Stocks Market
+* `economy` → Economy News
+* `forex` → Forex News
+* `trading` → Trading News
+* `reports` → Reports Articles
+* `cryptocurrencies` → Cryptocurrencies News
+
+### How it behaves
+
+* Each category is processed independently
+* The scraper starts from the category listing pages
+* Category work can be split automatically across workers
+* If only one category is provided, the scraper can shard pages across workers
+
+### Important notes
+
+* Use category names exactly as expected by your scraper
+* Multiple categories are distributed across workers automatically
+* One category can still be shared across workers using page sharding
+* Start with a small number of categories if you are testing
+
+---
+
+## Stop date
+
+**Type:** string  
+**Editor:** `datepicker`  
+**Optional:** yes
+
+This stops the Actor from returning articles older than the selected date.
+
+### How it behaves
+
+* Only articles published on or after the selected date are collected
+* Older articles are skipped
+* Leave it empty to crawl without a date limit
+
+### When to use it
+
+* daily monitoring
+* recent content collection
+* archive reduction
+* date-bounded research
+* trend snapshots for a specific period
+
+### Example
+
+If you choose `2025-03-01`, the Actor will keep only articles from `2025-03-01` and newer.
+
+### Notes
+
+* Dates are UTC-based
+* This is very useful when scraping active categories with large histories
+
+---
+
+## Filter fields
+
+**Type:** array  
+**Editor:** `select`  
+**Optional:** yes
+
+This option removes articles that are missing selected fields.
+
+### How it works
+
+If you select a field, any article missing that field will be dropped.
+
+Example:
+
+* selecting `title` and `body` keeps only articles that have both fields populated
+
+### Good use cases
+
+* only keep complete articles
+* remove sparse or partial records
+* ensure data quality before export
+* avoid empty or low-value results
+
+### Available fields
+
+* `icon`
+* `title`
+* `summary`
+* `publisher`
+* `authors`
+* `category`
+* `sentiment`
+* `sentiment_score`
+* `article_type`
+* `published`
+* `modified`
+* `tags`
+* `body`
+* `url`
+* `images`
+
+### Important
+
+This is a strict “must contain all selected fields” filter.
+
+### Practical meaning
+
+* Select nothing to keep all articles
+* Select one field to require that field
+* Select multiple fields to require all selected fields
+* if field Title was selected then articles without Title will be dropped and won't show up 
+
+---
+
+## Maximum articles amount
+
+**Type:** integer  
+**Required:** yes  
+**Minimum:** 10  
+**Maximum:** 10000
+
+This sets the maximum number of articles the Actor will attempt to collect.
+
+### Important behavior
+
+This value is the total target for the run, actor will stop immediately after reaching it without considering any other links or categories it didn't scrape from
+
+### Recommended use
+
+* Use a smaller value for testing
+* Use a moderate value for large category runs
+* Avoid very large values across many sources unless you know the site is stable
+
+### Why this matters
+
+Investing.com can become unstable if you crawl too aggressively. Parallel workers improve speed, but the site may still throttle or reject some sessions.
+
+### Practical guidance
+
+* `10` to `50` for quick checks
+* `100` to `1000` for normal scraping
+* Higher values only when you need large archives
+
+---
+
+## Proxy configurations
+
+**Type:** object  
+**Editor:** `proxy`  
+**Optional:** yes
+
+This controls whether the Actor uses Apify Proxy or a custom proxy setup.
+
+### Recommended use
+
+Use proxies when:
+
+* Investing.com blocks requests
+* you see empty or partial results
+* you are running larger jobs
+
+### When not to use proxies
+
+* very small test runs
+* cases where direct access already works reliably
+* if everything is working fine without them
+
+### Notes
+
+* Apify Proxy can help with stability
+* Bad proxy settings can reduce reliability
+* If requests fail or return blocks, proxies are one of the first things to try
+
+---
+
+## Example input
+
+```json
+{
+  "links": [
+    "https://www.investing.com/news/latest-news",
+    "https://www.investing.com/news/cryptocurrency-news"
+  ],
+  "keywords": "bitcoin",
+  "categories": [
+    "latest-news",
+    "cryptocurrencies"
+  ],
+  "stopDate": null,
+  "filterFields": [
+    "title",
+    "body",
+    "publisher"
+  ],
+  "maxArticles": 100,
+  "proxyConfiguration": {
+    "useApifyProxy": false
+  }
+}
+```
+
+---
+
+## Tips for scraping Investing.com
+
+* Use category filtering to focus on relevant market sections
+* Use custom links when you need specific pages or direct articles
+* Start with a small `maxArticles` value first
+* Use `filterFields` to remove incomplete or noisy records
+* Use `stopDate` when you only need recent articles
+* Use proxies if you encounter blocks, empty pages, or unstable runs
+* Keep keyword filtering focused because it is case-sensitive and slower
+
+---
+
+## Cost considerations
+
+Apify includes free usage credits on the Free plan, and the final cost depends on:
+
+* number of articles scraped
+* number of category pages or article pages visited
+* amount of browser runtime
+* proxy usage
+* worker count
+* retry count and failed sessions
+
+For lighter scraping tasks, this Actor can be used efficiently with small batches of categories or URLs. For larger monitoring, research, or archival jobs, a paid Apify plan is recommended.
+
+---
 
 ## Is it legal to scrape Investing.com?
-- Webscraping is legal and scraping any publicly available data is legal
-- You might want to review the terms of service for any website you want to scrape in general
-- Note that personal data is protected by GDPR in the European Union and by other regulations around the world. You should not scrape personal data unless you have a legitimate reason to do so. If you're unsure whether your reason is legitimate, consult your lawyers. We also recommend that you read our blog post: [is web scraping legal?](https://blog.apify.com/is-web-scraping-legal/)
+
+Scraping publicly available data may be legal, but you should always review the website’s terms of service and applicable laws before collecting data at scale.
+
+Personal data may be protected by GDPR and other privacy regulations. Do not scrape personal data unless you have a legitimate reason to do so.
+
+If you are unsure, consult a lawyer.
+
+We also recommend reading Apify’s article: [Is web scraping legal?](https://blog.apify.com/is-web-scraping-legal/)
+
+---
 
 ## Contact me
-- I would love to hear from you in the issues tab for any Suggestions or Errors
-- Feel free to contact me on my [GitHub](https://github.com/G-Glitch404)
 
-### More Scrapers and More News and More and More Data
-- [The Ultimate News scraper](https://apify.com/glitch_404/ultimate-news-scraper)
-- [investopedia.com scraper](https://apify.com/glitch_404/investopedia-scraper)
+If you have suggestions, bug reports, or feature requests, feel free to open an issue or contact me through [GitHub](https://github.com/G-Glitch404).
+
+---
+
+## More scrapers
+
+* [The Ultimate News Scraper](https://apify.com/glitch_404/ultimate-news-scraper)
+* [Light-Weight Reddit Scraper](https://apify.com/glitch_404/redditscraper)
