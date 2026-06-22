@@ -4,7 +4,7 @@ import datetime as dt
 from typing import Any
 from multiprocessing import Value
 
-from src.util.utils import path, DEFAULT_DATE_FORMAT
+from src.util.utils import path
 
 
 settings: dict[str, Any] = {
@@ -18,9 +18,9 @@ settings: dict[str, Any] = {
     ),
 
     "PROXY": None,
-    "WORKERS": 1,
+    "WORKERS": 2,  # more workers means more "memory" consumption, 2-4 GB of rams for 2 workers and ~8GB for 4 workers
     "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc),
-    "ARTICLES_FOUND": Value('i', 0),
+    "ARTICLES_FOUND": Value('i', 0),  # scrapes are the rate of 1 article in 0.5s with 2 workers
 }
 
 
