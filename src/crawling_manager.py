@@ -3,7 +3,7 @@ import datetime as dt
 
 from typing import Any, Optional, Coroutine, Generator
 
-from items import Article
+from src.items import Article
 from src.settings import settings
 from src.crawler.investing_crawler import InvestingCrawler
 from src.core.database import Database
