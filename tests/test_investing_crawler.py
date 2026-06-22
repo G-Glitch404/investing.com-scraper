@@ -1,4 +1,4 @@
-from src.crawler.investing_api import InvestingAPI
+from src.crawler.investing_crawler import InvestingCrawler
 
 max_articles: int = 10
 categories: list[str] = ["latest-news"]
@@ -6,7 +6,7 @@ links: list[str] = ["https://www.investing.com/news/latest-news/1"]
 
 
 def test_scrape_links() -> None:
-    crawler = InvestingAPI()
+    crawler = InvestingCrawler()
     articles_counter: int = 0
     for link in links:
         if articles_counter >= max_articles: break
@@ -21,7 +21,7 @@ def test_scrape_links() -> None:
 
 
 def test_scrape_categories() -> None:
-    crawler = InvestingAPI()
+    crawler = InvestingCrawler()
     articles_counter: int = 0
     for category in categories:
         if articles_counter >= max_articles: break

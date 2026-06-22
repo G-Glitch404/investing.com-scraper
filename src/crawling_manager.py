@@ -4,7 +4,7 @@ import datetime as dt
 from typing import Any, Optional, Coroutine, Generator
 
 from items import Article
-from src.settings import settings, crawler_categories
+from src.settings import settings
 from src.crawler.investing_crawler import InvestingCrawler
 from src.core.database import Database
 from src.core.logger import Logger
@@ -32,13 +32,6 @@ def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tupl
         if isinstance(val, (list, dict)) and len(val) == 0:
             return True, f"missing field {field}"
 
-    if "all" not in actor_input["categories"]:
-        art_cat: Optional[str] = article.get("category")
-        if not art_cat or art_cat not in crawler_categories["all_categories"]:
-            return True, "article category unavailable"
-        if art_cat not in actor_input["categories"]:
-            return True, "category mismatch"
-
     if actor_input["keywords"]:
         art_text: str = article.get("body") or ""
         if not isinstance(art_text, str) or not art_text.strip():
@@ -56,7 +49,7 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
     retries: int = 0
 
     while not done.is_set() and settings["ARTICLES_FOUND"].value < actor_input["max_articles"]:
-        await asyncio.sleep(10)
+        await asyncio.sleep(20)
 
         rows: list[tuple[Any, ...]] = [row for row in Database().fetch_all("articles") if not row[1]]
         if not rows:
@@ -80,8 +73,8 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
             Database().execute(f"UPDATE articles SET pushed=1 WHERE id = {db_article[0]};")
 
             authors: list[str] = db_article[6].split(" , ") if db_article[6] else []
-            tags: list[str] = db_article[11].split(" , ") if db_article[11] else []
-            images: list[str] = db_article[14].split(" , ") if db_article[14] else []
+            tags: list[str] = db_article[13].split(" , ") if db_article[13] else []
+            images: list[str] = db_article[16].split(" , ") if db_article[16] else []
 
             article = {
                 "icon": db_article[2],
@@ -90,12 +83,14 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
                 "publisher": db_article[5],
                 "authors": authors,
                 "category": db_article[7],
-                "article_type": db_article[8],
-                "published": db_article[9],
-                "modified": db_article[10],
+                "sentiment": db_article[8],
+                "sentiment_score": db_article[9],
+                "article_type": db_article[10],
+                "published": db_article[11],
+                "modified": db_article[12],
                 "tags": tags,
-                "body": db_article[12],
-                "url": db_article[13],
+                "body": db_article[14],
+                "url": db_article[15],
                 "images": images,
             }
 
@@ -244,9 +239,9 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
     links: list[str] = actor_input.get("links") or []
     categories: list[str] = actor_input.get("categories") or []
 
-    if categories: workers = min(settings["WORKERS"], actor_input["max_articles"])
-    else: workers = min(settings["WORKERS"], len(links), actor_input["max_articles"])
-    workers = max(1, workers)  # do not create more workers than the total article target (nor less)
+    if categories: workers: int = min(settings["WORKERS"], actor_input["max_articles"])
+    else: workers: int = min(settings["WORKERS"], len(links), actor_input["max_articles"])
+    workers: int = max(1, workers)  # do not create more workers than the total article target (nor less)
 
     work_units: list[dict[str, Any]] = _build_work_units(links, categories, workers)
     if not work_units:
