@@ -7,7 +7,7 @@
     "version": "2.0",
     "usesStandbyMode": false,
     "minMemoryMbytes": 4096,
-    "maxMemoryMbytes": 8192,
+    "maxMemoryMbytes": 4096,
     "readme": "../readme.md",
     "changelog": "../changelog.md",
     "dockerfile": "./Dockerfile",

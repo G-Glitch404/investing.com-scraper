@@ -49,7 +49,7 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
     retries: int = 0
 
     while not done.is_set() and settings["ARTICLES_FOUND"].value < actor_input["max_articles"]:
-        await asyncio.sleep(20)
+        await asyncio.sleep(30)
 
         rows: list[tuple[Any, ...]] = [row for row in Database().fetch_all("articles") if not row[1]]
         if not rows:
