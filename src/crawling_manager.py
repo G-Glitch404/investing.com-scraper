@@ -13,6 +13,14 @@ from src.__init__ import rebuild_database, clean_processes
 logger = Logger("CrawlingManager")
 
 
+async def charge_user(actor, event_name: str) -> None:
+    """ charge the user for an event """
+    charge_event = await actor.charge(event_name=event_name)
+    if charge_event.event_charge_limit_reached:
+        logger.warning(f"charge event '{event_name}' limit reached, exiting...")
+        await actor.exit()
+
+
 def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tuple[bool, str]:
     """ checks if an article is valid to be returned or not """
     for field in actor_input["filter_fields"]:
@@ -92,6 +100,8 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
             filter_status = article_filter(article, actor_input)
             if not filter_status[0]:
                 await actor.push_data(article)
+                await charge_user(actor, 'pushed-result')
+                logger.info("charged user for a valid article result")
                 articles_counter += 1
             else: logger.warning(f"Dropped an article reason:  {filter_status[1]}  -  url:  {article['url']}")
 
@@ -103,6 +113,7 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
 
 async def crawl_worker(
         crawler: InvestingAPI,
+        done_event: asyncio.Event,
         work_units: list[dict[str, Any]],
         max_articles_per_worker: int,
         stop_date: Optional[dt.datetime] = None,
@@ -112,7 +123,7 @@ async def crawl_worker(
         articles_counter: int = 0
 
         for item in work_units:
-            if articles_counter >= max_articles_per_worker: return
+            if (articles_counter >= max_articles_per_worker) or done_event.is_set(): return
 
             item_type: str = item.get("type")
             remaining: int = max_articles_per_worker - articles_counter
@@ -220,6 +231,9 @@ def _crawl_category_shard(
 
 async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
     """ the crawling manager responsible for crawling preparing the system and workers for crawls """
+    await charge_user(actor, 'actor-start')
+    logger.info("charged user for actor start")
+
     rebuild_database()
     clean_processes()
 
@@ -227,10 +241,6 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
 
     links: list[str] = actor_input.get("links") or []
     categories: list[str] = actor_input.get("categories") or []
-
-    if not links and not categories:
-        logger.info("no links or categories were provided, exiting")
-        return
 
     if categories: workers = min(settings["WORKERS"], actor_input["max_articles"])
     else: workers = min(settings["WORKERS"], len(links), actor_input["max_articles"])
@@ -268,6 +278,7 @@ async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
         tasks.append(
             crawl_worker(
                 crawler=crawler,
+                done_event=done,
                 work_units=chunk,
                 stop_date=actor_input["stop_date"],
                 max_articles_per_worker=limit,
