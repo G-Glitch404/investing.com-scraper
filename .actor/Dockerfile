@@ -1,4 +1,4 @@
-FROM apify/actor-python-seleniumDebian:latest
+FROM apify/actor-python-selenium:latest
 
 WORKDIR /usr/src/app
 
