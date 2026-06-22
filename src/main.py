@@ -6,7 +6,7 @@ from apify import Actor
 from src.settings import settings, crawler_categories
 from src.core.logger import Logger
 from crawling_manager import crawling_manager
-from src.util.utils import format_date
+from src.util.utils import format_date, DEFAULT_DATE_FORMAT
 
 control_logger = Logger("Control")
 
@@ -47,8 +47,14 @@ async def main() -> None:
 
         await Actor.set_status_message('Processing input and configuring crawler settings...')
         actor_input: dict[str, Any] = get_client_inputs(await Actor.get_input() or {})
-        await Actor.set_status_message('Configuring proxies if any were provided...')
 
+        if not actor_input["categories"] and not actor_input["links"]:
+            await Actor.set_status_message('Neither categories nor links were provided, invalied inputs, actor is exiting...')
+            control_logger.error("please provide either a link or a category to scrape from, otherwise actor can't scrape")
+            await Actor.exit()
+            return
+
+        await Actor.set_status_message('Configuring proxies if any were provided...')
         if actor_input["proxy_cfg"]:
             proxy_cfg = await Actor.create_proxy_configuration(actor_proxy_input=actor_input["proxy_cfg"])
             actor_input['proxy'] = await proxy_cfg.new_url()
@@ -56,7 +62,7 @@ async def main() -> None:
 
         control_logger.info(
             f"""\n
-            Actor-Inputs - run date: {settings["TODAY_DATE"]}
+            Actor-Inputs - run date: {settings["TODAY_DATE"].strftime(DEFAULT_DATE_FORMAT)}
             \n
             -----------------
             start_urls: {actor_input["links"]}
@@ -71,17 +77,11 @@ async def main() -> None:
             """
         )
 
-        if len(actor_input["links"]) > 1:
-            await Actor.set_status_message(
-                f'Scraping ~{actor_input["max_articles"]} {"articles" if actor_input["max_articles"] > 1 else "article"} '
-                f'from {len(actor_input["links"])} {"links" if len(actor_input["links"]) > 1 else "link"} '
-                f'filtering with {len(actor_input["categories"])} {"categories" if len(actor_input["categories"]) > 1 else "category"}'
-            )
-        else:
-            await Actor.set_status_message(
-                f'Scraping ~{actor_input["max_articles"]} {"articles" if actor_input["max_articles"] > 1 else "article"} '
-                f'from {len(actor_input["categories"])} {"categories" if len(actor_input["categories"]) > 1 else "category"}'
-            )
+        await Actor.set_status_message(
+            f"Scraping ~{actor_input['max_articles']} {'articles' if actor_input['max_articles'] != 1 else 'article'} "
+            f"from {len(actor_input['links'])} {'links' if len(actor_input['links']) != 1 else 'link'} "
+            f"and {len(actor_input['categories'])} {'categories' if len(actor_input['categories']) != 1 else 'category'}"
+        )
 
         await crawling_manager(Actor, actor_input)
 

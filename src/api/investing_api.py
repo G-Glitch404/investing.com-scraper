@@ -55,7 +55,7 @@ class InvestingAPI:
                 page_load_strategy="eager",
                 dark_mode=True,
                 do_not_track=True,
-                user_data_dir=path(path('..', '.data_dirs'), f'InvestingCrawlerProfile{self.worker_id}'),
+                user_data_dir=path(path('..', '.data_dirs'), f'InvestingCrawlerProfile_{self.worker_id or 1}'),
             )
             self.logger.debug("crawler started seleniumbase uc driver")
 
@@ -256,7 +256,7 @@ class InvestingAPI:
                 article["summary"] + "\n" +
                 article["body"]
         )
-        sentiment_score = self.sentiment_analyzer.polarity_scores(article_text)["compound"]
+        sentiment_score: float = self.sentiment_analyzer.polarity_scores(article_text)["compound"]
 
         article["sentiment_score"] = sentiment_score
         if sentiment_score > 0.1: article["sentiment"] = "positive"

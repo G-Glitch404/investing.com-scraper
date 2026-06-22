@@ -18,8 +18,8 @@ settings: dict[str, Any] = {
     ),
 
     "PROXY": None,
-    "WORKERS": 1,
-    "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc).strftime(DEFAULT_DATE_FORMAT),
+    "WORKERS": 4,
+    "TODAY_DATE": dt.datetime.now(tz=dt.timezone.utc),
     "ARTICLES_FOUND": Value('i', 0),
 }
 

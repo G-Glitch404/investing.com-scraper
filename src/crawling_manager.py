@@ -1,50 +1,20 @@
-import math
 import asyncio
 import datetime as dt
 
-from typing import Any, Optional
+from typing import Any, Optional, Coroutine, Generator
 
+from items import Article
 from src.settings import settings, crawler_categories
 from src.api.investing_api import InvestingAPI
 from src.core.database import Database
 from src.core.logger import Logger
-from src.util.utils import max_articles_per_category
 from src.__init__ import rebuild_database, clean_processes
 
 logger = Logger("CrawlingManager")
 
 
-async def scrape_links(crawler, links: list[str], stop_date: Optional[dt.datetime], max_articles: int) -> None:
-    def _run() -> None:
-        articles_counter: int = 0
-        for link in links:
-            for article in crawler.crawl_page(link=link, stop_date=stop_date):
-                if article.insert_to_db():
-                    articles_counter += 1
-                if articles_counter >= max_articles:
-                    return
-
-    logger.info(f"initiating a crawl for {len(links)} urls")
-    await asyncio.to_thread(_run)
-
-
-async def scrape_categories(crawler, categories: list[str], stop_date: Optional[dt.datetime], max_articles: int) -> None:
-    def _run() -> None:
-        articles_counter: int = 0
-        for category in categories:
-            for article in crawler.crawl(
-                topic_category=category,
-                max_articles=max_articles,
-                stop_date=stop_date,
-            ):
-                if article.insert_to_db(): articles_counter += 1
-                if articles_counter >= max_articles: return
-
-    logger.info(f"initiating a crawl for {len(categories)} categorises")
-    await asyncio.to_thread(_run)
-
-
 def article_filter(article: dict[str, Any], actor_input: dict[str, Any]) -> tuple[bool, str]:
+    """ checks if an article is valid to be returned or not """
     for field in actor_input["filter_fields"]:
         val: Any = article.get(field)
         if not val:
@@ -131,38 +101,177 @@ async def push_data(actor, actor_input: dict[str, Any], done: asyncio.Event) -> 
     done.set()
 
 
+async def crawl_worker(
+        crawler: InvestingAPI,
+        work_units: list[dict[str, Any]],
+        max_articles_per_worker: int,
+        stop_date: Optional[dt.datetime] = None,
+) -> None:
+    """ worker function for each worker """
+    def _run() -> None:
+        articles_counter: int = 0
+
+        for item in work_units:
+            if articles_counter >= max_articles_per_worker: return
+
+            item_type: str = item.get("type")
+            remaining: int = max_articles_per_worker - articles_counter
+
+            if item_type == "link":
+                generator: Generator[Article, None, None] = crawler.crawl_page(
+                    link=item["value"],
+                    stop_date=stop_date,
+                )
+
+            elif item_type == "category":
+                shard_step = int(item.get("shard_step", 1))
+                starting_page = int(item.get("starting_page", 1))
+
+                if shard_step > 1:
+                    generator: Generator[Article, None, None] = _crawl_category_shard(
+                        crawler=crawler,
+                        topic_category=item["value"],
+                        stop_date=stop_date,
+                        starting_page=starting_page,
+                        shard_step=shard_step,
+                    )
+                else:
+                    generator: Generator[Article, None, None] = crawler.crawl(
+                        topic_category=item["value"],
+                        max_articles=remaining,
+                        stop_date=stop_date,
+                    )
+
+            else:
+                logger.error("work provided for one of the workers contains invalid data 'type' is not in ('link', 'category'), worker is stopping now..")
+                return
+
+            for article in generator:
+                if article.insert_to_db():
+                    articles_counter += 1
+
+                if articles_counter >= max_articles_per_worker:
+                    logger.info(f"worker reached max articles limit '{max_articles_per_worker}', stopping now..")
+                    return
+
+    logger.info(f"worker crawl initiated for {len(work_units)} work units")
+    await asyncio.sleep((crawler.worker_id - 1) * 2)  # prevents seleniumbase instances from starting at the same time
+    await asyncio.to_thread(_run)
+
+
+def _split_evenly(items: list[dict[str, Any]], workers: int) -> list[list[dict[str, Any]]]:
+    return [items[i::workers] for i in range(workers)]
+
+
+def _split_limits(total: int, workers: int) -> list[int]:
+    base: int = total // workers
+    remainder: int = total % workers
+    return [base + (1 if i < remainder else 0) for i in range(workers)]
+
+
+def _build_work_units(links: list[str], categories: list[str], workers: int) -> list[dict[str, Any]]:
+    """ merge links and categories into one list for workers to split it between each other """
+    work_units: list[dict[str, Any]] = []
+
+    for link in links:
+        work_units.append({
+            "type": "link",
+            "value": link,
+        })
+
+    if len(categories) == 1 and workers > 1:
+        category = categories[0]
+        for i in range(workers):
+            work_units.append({
+                "type": "category",
+                "value": category,
+                "starting_page": i + 1,
+                "shard_step": workers,  # each worker gets a page to crawl without interfering with other workers
+            })
+    else:
+        for category in categories:
+            work_units.append({
+                "type": "category",
+                "value": category,
+            })
+
+    return work_units
+
+
+def _crawl_category_shard(
+        crawler: InvestingAPI,
+        topic_category: str,
+        stop_date: Optional[dt.datetime] = None,
+        starting_page: int = 1,
+        shard_step: int = 1,
+) -> Generator[Article, None, None]:
+    """ crawl category with a stepping mechanism so workers don't interfere with each other's work """
+    page_generator: Generator[str, None, None] = crawler.pagination(topic=topic_category, starting_page=starting_page)
+
+    while True:
+        page_url: str = next(page_generator)
+
+        for article in crawler.crawl_page(link=page_url, stop_date=stop_date):
+            yield article
+
+        for _ in range(shard_step - 1):  # skipping a page
+            next(page_generator)
+
+
 async def crawling_manager(actor, actor_input: dict[str, Any]) -> None:
+    """ the crawling manager responsible for crawling preparing the system and workers for crawls """
     rebuild_database()
     clean_processes()
 
     done = asyncio.Event()
 
-    total_items = len(actor_input["links"]) if actor_input["links"] else len(actor_input["categories"])
-    amount_per_category = max_articles_per_category(actor_input["max_articles"], total_items)
-    cats_or_urls_per_worker = math.ceil(total_items / settings["WORKERS"])
+    links: list[str] = actor_input.get("links") or []
+    categories: list[str] = actor_input.get("categories") or []
 
-    crawler = InvestingAPI(worker_id=1, proxy=(actor_input["proxy"] or None))
+    if not links and not categories:
+        logger.info("no links or categories were provided, exiting")
+        return
 
-    tasks = [push_data(actor, actor_input, done)]
+    if categories: workers = min(settings["WORKERS"], actor_input["max_articles"])
+    else: workers = min(settings["WORKERS"], len(links), actor_input["max_articles"])
+    workers = max(1, workers)  # do not create more workers than the total article target (nor less)
 
-    if isinstance(actor_input["links"], list) and len(actor_input["links"]) >= 1:
-        tasks.append(
-            scrape_links(
-                crawler=crawler,
-                links=actor_input["links"][:cats_or_urls_per_worker],
-                stop_date=actor_input["stop_date"],
-                max_articles=amount_per_category,
-            )
+    work_units: list[dict[str, Any]] = _build_work_units(links, categories, workers)
+    if not work_units:
+        logger.warning("no work units were built, crawler exiting..")
+        return
+
+    chunks: list[list[dict[str, Any]]] = _split_evenly(work_units, workers)
+    limits_per_worker: list[int] = _split_limits(actor_input["max_articles"], workers)
+    tasks: list[Coroutine] = [push_data(actor, actor_input, done)]
+    workers_crawlers: list[InvestingAPI] = [
+        InvestingAPI(
+            worker_id=i + 1,
+            proxy=(actor_input["proxy"] or None)
         )
-    elif isinstance(actor_input["categories"], list) and len(actor_input["categories"]) >= 1:
+        for i in range(workers)
+    ]
+
+    logger.info(
+        f"prepared {workers} workers for {len(links)} links and {len(categories)} categories "
+        f"with {len(work_units)} total work units and per-worker limits {limits_per_worker}"
+    )
+
+    for crawler, chunk, limit in zip(workers_crawlers, chunks, limits_per_worker):
+        if not chunk or limit <= 0: continue
+
+        logger.info(
+            f"initiating worker {crawler.worker_id}/{workers} "
+            f"with {len(chunk)} jobs and articles limit {limit}"
+        )
+
         tasks.append(
-            scrape_categories(
+            crawl_worker(
                 crawler=crawler,
-                categories=actor_input["categories"][:cats_or_urls_per_worker],
+                work_units=chunk,
                 stop_date=actor_input["stop_date"],
-                max_articles=amount_per_category,
+                max_articles_per_worker=limit,
             )
         )
 
     await asyncio.gather(*tasks)
-

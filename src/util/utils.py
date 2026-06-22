@@ -1,11 +1,9 @@
 import os
 import re
-import math
 import datetime as dt
 from typing import Callable, Any
 
 DEFAULT_DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
-max_articles_per_category: Callable[[int, int], int] = lambda max_articles, categories_len: math.ceil(max_articles / categories_len)
 clean_text: Callable[[Any], str] = lambda text: re.sub('\n+|\\s+|\\t+|\\r+|\\r\\n+|\\r\\n', ' ', ''.join(text)).strip()
 
 
