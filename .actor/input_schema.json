@@ -9,7 +9,9 @@
       "description": "you can scrape from a specific page/s only or scrape from a category - or scrape from a url and limit results to a specific category -\n\nformat examples\n- single url: https://www.investing.com/news/latest-news/3\n- multiple sources: add each source as a separate item in the list\n\nnote: leave empty to start with no urls and populate the request list dynamically",
       "type": "array",
       "editor": "requestListSources",
-      "default": []
+      "default": [],
+      "minItems": 0,
+      "maxItems": 1000
     },
 
     "keywords": {
@@ -18,18 +20,20 @@
       "type": "string",
       "editor": "select",
       "enumSuggestedValues": [""],
-      "default": ""
+      "default": "",
+      "minItems": 0,
+      "maxItems": 100
     },
 
     "categories": {
       "title": "Select categories to scrape news from",
       "description": "Categories to scrape from if you want to scrape from all categories choose 'all'",
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "maxItems": 13,
-      "nullable": false,
+      "nullable": true,
       "editor": "select",
-      "prefill": ["all"],
+      "prefill": null,
       "default": ["latest-news"],
       "items": {
         "type": "string",
@@ -81,7 +85,7 @@
       "description": "drop articles that are missing any of the selected fields\n\nusage examples\n- leave empty: no field-based filtering, return articles even if fields are missing\n- single field: [\"authors\"] will drop articles with empty or missing authors\n- multiple fields: [\"title\",\"body\"] will drop articles missing either title or body\n\nbehavior\n- selectable values mirror article fields; choose nothing, one, or many\n- if you need to require at least one of several fields instead of all, handle in post-processing",
       "type": "array",
       "minItems": 0,
-      "maxItems": 13,
+      "maxItems": 15,
       "nullable": true,
       "editor": "select",
       "items": {
@@ -93,6 +97,8 @@
           "publisher",
           "authors",
           "category",
+          "sentiment",
+          "sentiment_score",
           "article_type",
           "published",
           "modified",
@@ -108,6 +114,8 @@
           "Publisher",
           "Authors",
           "Category",
+          "Sentiment",
+          "Sentiment Score",
           "Article Type",
           "Published",
           "Modified",
@@ -126,7 +134,7 @@
       "description": "set the maximum number of articles the actor will attempt to collect\n\nbehavior examples\n- default 10: quick runs and testing\n- prefill 1000: helpful example shown in the UI for larger harvests\n- if you set 1000 you may still get fewer results depending on site availability\n\nconstraints\n- minimum: 10\n- maximum: 10000",
       "default": 10,
       "editor": "number",
-      "prefill": 1000,
+      "prefill": 100,
       "maximum": 10000,
       "minimum": 10
     },
@@ -145,7 +153,6 @@
   },
 
   "required": [
-    "categories",
     "maxArticles"
   ]
 }

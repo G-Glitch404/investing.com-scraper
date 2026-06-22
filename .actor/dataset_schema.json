@@ -11,6 +11,8 @@
                     "Publisher",
                     "Authors",
                     "Category",
+                    "Sentiment",
+                    "Sentiment Score",
                     "Article Type",
                     "Published",
                     "Modified",
@@ -46,6 +48,16 @@
                     "Category": {
                         "label": "Category",
                         "format": "text"
+                    },
+
+                    "Sentiment": {
+                        "label": "Sentiment",
+                        "format": "text"
+                    },
+
+                    "Sentiment Score": {
+                        "label": "Sentiment Score",
+                        "format": "integer"
                     },
                     "Article Type": {
                         "label": "Article Type",
